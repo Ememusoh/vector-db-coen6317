@@ -26,17 +26,33 @@ tests/       unit tests
 
 ## Setup
 
-Requires Python 3.10+.
+Requires Python 3.10+ (we use 3.12).
 
 ```bash
-python3 -m venv .venv
+python3.12 -m venv .venv        # or: uv venv --python 3.12 .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+pytest                          # run the tests
 ```
 
 ## Datasets
 
-SIFT, GIST, Deep and GloVe (with synthetic labels), plus YFCC (with native labels). Download scripts will go in `scripts/`. Data is stored under `datasets/` and is not committed.
+SIFT, GIST, Deep and GloVe (with synthetic labels), plus YFCC (with native labels, coming later). Data is stored under `datasets/` and is not committed.
+
+```bash
+python scripts/prepare_dataset.py sift     # also: gist, glove, deep
+```
+
+This downloads the dataset and, for each attribute scheme (`independent`, `correlated`), writes:
+
+| File | Contents |
+|------|----------|
+| `base.npy`, `queries.npy` | float32 vectors (angular datasets are L2-normalised) |
+| `<scheme>/labels.npy` | one integer label per base vector |
+| `<scheme>/workload.npz` | (query, label) pairs at 50%, 10%, 1%, 0.1% selectivity, split into validation (30%) / test (70%) by query |
+| `<scheme>/gt.npz` | exact filtered top-100 ids and squared L2 distances (-1 = fewer eligible vectors than k) |
+
+Labels 0 to 3 hit those selectivities exactly; other labels fill the rest at about 1% each. In the `correlated` scheme, each label covers a compact region of the vector space.
 
 ## Reproducing experiments
 
