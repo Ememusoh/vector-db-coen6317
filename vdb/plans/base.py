@@ -15,6 +15,8 @@ class PlanResult:
     ndis: int          # total distance computations (all rounds)
     rounds: int = 1    # post-filter expansion rounds
     candidates: int = 0  # candidates examined after the ANN step (post-filter)
+    chosen: str = ""     # plan@budget actually executed (set by planners)
+    overhead_ms: float = 0.0  # planning time (features + decision), included in latency
 
 
 def pad(ids, dists, k):

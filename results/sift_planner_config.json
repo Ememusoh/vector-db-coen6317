@@ -1,0 +1,7 @@
+{
+  "target": 0.95,
+  "tau": 0.7300000000000001,
+  "threshold_theta": 0.0,
+  "threshold_fallback": "prefilter@0",
+  "best_fixed": "prefilter@0"
+}

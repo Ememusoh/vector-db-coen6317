@@ -82,3 +82,15 @@ python scripts/sweep_plans.py sift independent --per-selectivity 100 --split val
 ```
 
 Writes per-query rows to `results/raw/` and a per-plan/budget/selectivity summary to `results/`.
+
+### Planner
+
+```bash
+python scripts/evaluate_planner.py sift --target 0.95
+```
+
+Trains on the validation sweeps of every scheme and runs live on held-out test queries:
+
+- `planner`: cost-model planner (`vdb/planner/`). Features are global selectivity and *local* selectivity near the query, from a 256-cell histogram. Per (plan, budget) it uses a logistic model for P(high recall) and a linear model for log latency. It picks the fastest config whose predicted probability passes a cutoff calibrated on out-of-fold validation predictions.
+- `threshold`: pre-filter if selectivity < θ, else one fixed (plan, budget); θ and the fallback are tuned on validation.
+- `fixed`: the single fastest (plan, budget) meeting the target on validation.

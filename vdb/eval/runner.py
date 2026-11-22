@@ -26,9 +26,9 @@ def run_plan(plan: Plan, queries: np.ndarray, wl, gt_ids: np.ndarray, rows: np.n
         dt = time.perf_counter() - t0
         rec.append((int(r), int(wl.query_ids[r]), label, float(wl.selectivity[r]), int(wl.split[r]),
                     recall_at_k(res.ids, gt_ids[r], k), dt * 1e3, res.ndis, res.rounds,
-                    int((res.ids >= 0).sum())))
+                    int((res.ids >= 0).sum()), res.chosen, res.overhead_ms))
     df = pd.DataFrame(rec, columns=["row", "query_id", "label", "selectivity", "split", "recall",
-                                    "latency_ms", "ndis", "rounds", "n_returned"])
+                                    "latency_ms", "ndis", "rounds", "n_returned", "chosen", "overhead_ms"])
     df.insert(0, "budget", budget)
     df.insert(0, "strategy", plan.strategy)
     df.insert(0, "index", plan.index)
