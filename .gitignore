@@ -34,3 +34,4 @@ results/raw/
 # Logs
 *.log
 logs/
+!results/figures/*.pdf
