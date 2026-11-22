@@ -1,0 +1,10 @@
+numpy>=1.26
+numba>=0.59
+faiss-cpu>=1.8
+h5py>=3.10
+pyyaml>=6.0
+pandas>=2.1
+matplotlib>=3.8
+scikit-learn>=1.4
+tqdm>=4.66
+pytest>=8.0
