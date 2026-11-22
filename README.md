@@ -54,6 +54,15 @@ This downloads the dataset and, for each attribute scheme (`independent`, `corre
 
 Labels 0 to 3 hit those selectivities exactly; other labels fill the rest at about 1% each. In the `correlated` scheme, each label covers a compact region of the vector space.
 
+## Indexes
+
+```bash
+python scripts/build_indexes.py sift      # IVF (nlist ~ 4 sqrt N) and HNSW (M=32, efC=200)
+python scripts/check_indexes.py sift      # our search vs FAISS: recall, latency, distance counts
+```
+
+FAISS builds the structures (k-means centroids, HNSW graph). All searching runs through our own Numba kernels (`vdb/index/kernels.py`), which count every distance computation, so every plan is measured the same way. The attribute-partitioned IVF is derived from the IVF index per label scheme in a few seconds, so it isn't saved separately.
+
 ## Reproducing experiments
 
 TBD.
