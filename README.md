@@ -63,6 +63,22 @@ python scripts/check_indexes.py sift      # our search vs FAISS: recall, latency
 
 FAISS builds the structures (k-means centroids, HNSW graph). All searching runs through our own Numba kernels (`vdb/index/kernels.py`), which count every distance computation, so every plan is measured the same way. The attribute-partitioned IVF is derived from the IVF index per label scheme in a few seconds, so it isn't saved separately.
 
+## Plans
+
+Six plans share one interface, `plan.search(query, label, k, budget)` (`vdb/plans/`):
+
+| Plan | Strategy | Budget knob |
+|------|----------|-------------|
+| `prefilter` | look up matching ids, exact search over them | none |
+| `ivf_post`, `hnsw_post` | unfiltered ANN for ~k/selectivity candidates, drop non-matching, double and retry if short | nprobe / ef |
+| `ivf_in` | skip non-matching list entries before computing distances | nprobe |
+| `ivfpart_in` | jump to the label's slice of each partitioned list | nprobe |
+| `hnsw_in` | traverse any node, only matching nodes become results | ef |
+
 ## Reproducing experiments
 
-TBD.
+```bash
+python scripts/sweep_plans.py sift independent --per-selectivity 100 --split val
+```
+
+Writes per-query rows to `results/raw/` and a per-plan/budget/selectivity summary to `results/`.
