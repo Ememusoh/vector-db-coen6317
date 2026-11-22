@@ -1,6 +1,17 @@
 {
   "target": 0.95,
-  "tau": 0.7300000000000001,
+  "margin": 0.01,
+  "taus": [
+    0.05,
+    0.77,
+    0.8150000000000001,
+    0.8150000000000001
+  ],
+  "bucket_edges_log10_sel": [
+    -2.5,
+    -1.5,
+    -0.650515
+  ],
   "threshold_theta": 0.0,
   "threshold_fallback": "prefilter@0",
   "best_fixed": "prefilter@0"

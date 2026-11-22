@@ -1,0 +1,28 @@
+Planner vs baselines on held-out test queries (end-to-end latency, planning included). Speed-up is relative to the tuned threshold rule.
+
+| Dataset | Labels | Method | Recall@10 | Mean ms | p50 ms | p95 ms | Speed-up |
+|---|---|---|---|---|---|---|---|
+| SIFT1M | independent | Cost-model planner | 0.979 | 0.247 | 0.152 | 0.590 | 23.0 |
+| SIFT1M | independent | Threshold rule | 1.000 | 5.679 | 4.204 | 14.797 | 1.0 |
+| SIFT1M | independent | Best fixed config | 1.000 | 5.726 | 4.219 | 14.850 | 1.0 |
+| SIFT1M | independent | Oracle (hindsight) | 1.000 | 0.087 | 0.076 | 0.213 | 65.3 |
+| SIFT1M | correlated | Cost-model planner | 0.962 | 1.822 | 0.183 | 12.360 | 2.8 |
+| SIFT1M | correlated | Threshold rule | 1.000 | 5.164 | 3.854 | 13.518 | 1.0 |
+| SIFT1M | correlated | Best fixed config | 1.000 | 4.961 | 3.873 | 12.583 | 1.0 |
+| SIFT1M | correlated | Oracle (hindsight) | 0.902 | 0.208 | 0.123 | 0.250 | 24.8 |
+| GloVe-100 | independent | Cost-model planner | 0.983 | 0.545 | 0.482 | 1.396 | 0.6 |
+| GloVe-100 | independent | Threshold rule | 0.970 | 0.325 | 0.265 | 0.847 | 1.0 |
+| GloVe-100 | independent | Best fixed config | 1.000 | 3.383 | 3.314 | 7.248 | 0.1 |
+| GloVe-100 | independent | Oracle (hindsight) | 0.958 | 0.117 | 0.092 | 0.336 | 2.8 |
+| GloVe-100 | correlated | Cost-model planner | 0.973 | 0.903 | 0.338 | 2.441 | 0.4 |
+| GloVe-100 | correlated | Threshold rule | 0.955 | 0.362 | 0.257 | 1.024 | 1.0 |
+| GloVe-100 | correlated | Best fixed config | 1.000 | 4.415 | 3.351 | 8.747 | 0.1 |
+| GloVe-100 | correlated | Oracle (hindsight) | 0.943 | 0.135 | 0.126 | 0.345 | 2.7 |
+| Deep1M | independent | Cost-model planner | 0.986 | 0.273 | 0.161 | 0.684 | 0.8 |
+| Deep1M | independent | Threshold rule | 0.998 | 0.211 | 0.158 | 0.542 | 1.0 |
+| Deep1M | independent | Best fixed config | 1.000 | 3.217 | 3.227 | 6.857 | 0.1 |
+| Deep1M | independent | Oracle (hindsight) | 0.971 | 0.052 | 0.050 | 0.100 | 4.1 |
+| Deep1M | correlated | Cost-model planner | 0.964 | 0.271 | 0.149 | 0.694 | 0.7 |
+| Deep1M | correlated | Threshold rule | 0.934 | 0.197 | 0.138 | 0.721 | 1.0 |
+| Deep1M | correlated | Best fixed config | 1.000 | 3.218 | 3.206 | 6.806 | 0.1 |
+| Deep1M | correlated | Oracle (hindsight) | 0.929 | 0.077 | 0.077 | 0.145 | 2.6 |
