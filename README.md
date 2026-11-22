@@ -94,3 +94,19 @@ Trains on the validation sweeps of every scheme and runs live on held-out test q
 - `planner`: cost-model planner (`vdb/planner/`). Features are global selectivity and *local* selectivity near the query, from a 256-cell histogram. Per (plan, budget) it uses a logistic model for P(high recall) and a linear model for log latency. It picks the fastest config whose predicted probability passes a cutoff calibrated on out-of-fold validation predictions.
 - `threshold`: pre-filter if selectivity < θ, else one fixed (plan, budget); θ and the fallback are tuned on validation.
 - `fixed`: the single fastest (plan, budget) meeting the target on validation.
+
+### Figures and tables
+
+```bash
+python scripts/make_figures.py          # every dataset with results
+```
+
+Writes PDF and PNG figures to `results/figures/` and Markdown and LaTeX (booktabs) tables to `results/tables/`:
+
+- `recall_latency_<dataset>`: recall vs median latency for every plan across its budget sweep, per selectivity and label scheme
+- `planner_comparison`: planner vs threshold rule vs best fixed config vs oracle, recall and mean latency
+- `planner_choices_<dataset>`: share of test queries routed to each plan
+- `tables/planner_results`, `tables/best_plan`, `tables/indexes`: the numbers behind the figures, plus build time and memory
+
+PDFs embed TrueType fonts, as ACM requires. Missing inputs are skipped, so the script can run at any stage.
+
