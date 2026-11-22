@@ -33,3 +33,4 @@ results/raw/
 
 # Logs
 *.log
+logs/

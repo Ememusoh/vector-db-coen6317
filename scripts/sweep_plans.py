@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from vdb.data import Workload, datasets  # noqa: E402
-from vdb.eval import summarize, sweep  # noqa: E402
+from vdb.eval import sample_rows, summarize, sweep  # noqa: E402
 from vdb.plans import FilterContext, make_plans  # noqa: E402
 
 
@@ -40,18 +40,13 @@ def main():
     _, queries, _ = datasets.load(args.dataset)
     d = datasets.DATA_ROOT / args.dataset / args.scheme
     wl = Workload.load(d / "workload.npz")
-    gt = np.load(d / "gt.npz")["ids"]
+    gtz = np.load(d / "gt.npz")
+    gt, gt_d = gtz["ids"], gtz["dists"]
     print(f"loaded in {time.time() - t0:.0f}s")
 
-    rng = np.random.default_rng(args.seed)
-    split_mask = np.ones(len(wl), bool) if args.split == "all" else wl.split == (0 if args.split == "val" else 1)
-    rows = []
-    for lab in np.unique(wl.labels):
-        cand = np.flatnonzero(split_mask & (wl.labels == lab))
-        rows.append(np.sort(rng.choice(cand, min(args.per_selectivity, cand.size), replace=False)))
-    rows = np.concatenate(rows)
+    rows = sample_rows(wl, args.split, args.per_selectivity, args.seed)
 
-    df = sweep(make_plans(ctx, args.plans), queries, wl, gt, rows, k=args.k)
+    df = sweep(make_plans(ctx, args.plans), queries, wl, gt, rows, k=args.k, gt_dists=gt_d)
     df.insert(0, "scheme", args.scheme)
     df.insert(0, "dataset", args.dataset)
 

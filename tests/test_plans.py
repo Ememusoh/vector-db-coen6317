@@ -74,3 +74,13 @@ def test_sweep_produces_rows(setup):
     df = sweep(plans, queries, wl, gt, np.arange(len(wl)), budgets={"ivf_in": [4, 64]}, progress=False)
     assert len(df) == 3 * len(wl)
     assert df.groupby("plan").recall.mean()["prefilter"] == 1.0
+
+
+def test_tie_aware_recall():
+    gt = np.array([5, 6, 7])
+    gd = np.array([1.0, 2.0, 2.0], np.float32)
+    found = np.array([5, 6, 9])  # 9 ties with 7 at distance 2.0
+    fd = np.array([1.0, 2.0, 2.0], np.float32)
+    assert recall_at_k(found, gt, 3) == 2 / 3
+    assert recall_at_k(found, gt, 3, fd, gd) == 1.0
+    assert recall_at_k(found, gt, 3, np.array([1.0, 2.0, 2.5], np.float32), gd) == 2 / 3

@@ -21,10 +21,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from vdb.data import Workload, datasets  # noqa: E402
-from vdb.eval import run_plan  # noqa: E402
+from vdb.eval import run_plan, sample_rows  # noqa: E402
 from vdb.index import HNSWIndex, IVFIndex  # noqa: E402
 from vdb.planner import (CoarseStats, CostModelPlanner, FixedSearch, PlannedSearch,  # noqa: E402
-                         ThresholdRule, ThresholdSearch, config_key)
+                         ThresholdRule, ThresholdSearch, config_key, oracle_choice)
 from vdb.plans import FilterContext, make_plans  # noqa: E402
 
 
@@ -44,6 +44,27 @@ def load_training(dataset, schemes, queries, stats):
     return np.vstack(feats), pd.concat(tables, ignore_index=True), np.concatenate(sels), np.concatenate(groups)
 
 
+def oracle_from_test_sweeps(dataset, schemes, target):
+    """Best possible per-query choices with hindsight, on test-split sweeps (if they exist)."""
+    frames = []
+    for s in schemes:
+        f = ROOT / "results" / "raw" / f"{dataset}_{s}_test.parquet"
+        if not f.exists():
+            return None
+        df = pd.read_parquet(f).assign(scheme=s)
+        df["config"] = [config_key(p, b) for p, b in zip(df.plan, df.budget)]
+        frames.append(df)
+    df = pd.concat(frames)
+    rec = df.pivot_table(index=["scheme", "row"], columns="config", values="recall")
+    lat = df.pivot_table(index=["scheme", "row"], columns="config", values="latency_ms")
+    idx = oracle_choice(rec.to_numpy(), lat.to_numpy(), target)
+    q = np.arange(len(rec))
+    sel = df.drop_duplicates(["scheme", "row"]).set_index(["scheme", "row"]).loc[rec.index, "selectivity"]
+    return pd.DataFrame({"scheme": rec.index.get_level_values(0), "selectivity": sel.to_numpy(),
+                         "config": rec.columns[idx], "recall": rec.to_numpy()[q, idx],
+                         "latency_ms": lat.to_numpy()[q, idx]})
+
+
 def best_fixed(table, target):
     g = table.groupby("config").agg(recall=("recall", "mean"), lat=("latency_ms", "mean"))
     ok = g[g.recall >= target]
@@ -55,9 +76,11 @@ def main():
     ap.add_argument("dataset")
     ap.add_argument("--schemes", nargs="+", default=["independent", "correlated"])
     ap.add_argument("--target", type=float, default=0.95)
+    ap.add_argument("--margin", type=float, default=0.01, help="safety buffer added to the target when calibrating")
+    ap.add_argument("--no-buckets", action="store_true", help="calibrate one cutoff for all selectivities")
     ap.add_argument("--per-selectivity", type=int, default=100)
     ap.add_argument("--k", type=int, default=10)
-    ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--seed", type=int, default=0, help="must match the sweeps' seed for the oracle to line up")
     args = ap.parse_args()
 
     t0 = time.time()
@@ -74,30 +97,30 @@ def main():
     print(f"loaded in {time.time() - t0:.0f}s")
 
     X, table, sel, groups = load_training(args.dataset, args.schemes, queries, stats)
-    planner = CostModelPlanner(target=args.target).fit(X, table, groups)
+    planner = CostModelPlanner(target=args.target, margin=args.margin,
+                               per_bucket=not args.no_buckets).fit(X, table, groups)
     rule = ThresholdRule(target=args.target).fit(sel, table)
     fixed = best_fixed(table, args.target)
     print(f"trained on {X.shape[0]} validation queries x {table.config.nunique()} configs")
-    print(f"  planner tau={planner.tau:.2f}; threshold rule: prefilter if sel < {rule.theta:g}, "
+    taus = ", ".join(f"{t:.2f}" for t in planner.taus)
+    print(f"  planner cutoffs per selectivity bucket: [{taus}]; threshold rule: prefilter if sel < {rule.theta:g}, "
           f"else {rule.fallback}; best fixed config: {fixed}")
 
     frames = []
-    rng = np.random.default_rng(args.seed)
     for s in args.schemes:
         ctx = ctxs[s]
         d = datasets.DATA_ROOT / args.dataset / s
         wl = Workload.load(d / "workload.npz")
-        gt = np.load(d / "gt.npz")["ids"]
-        rows = np.concatenate([np.sort(rng.choice(np.flatnonzero((wl.split == 1) & (wl.labels == lab)),
-                                                  args.per_selectivity, replace=False))
-                               for lab in np.unique(wl.labels)])
+        gtz = np.load(d / "gt.npz")
+        gt, gt_d = gtz["ids"], gtz["dists"]
+        rows = sample_rows(wl, "test", args.per_selectivity, args.seed)
         plans = {p.name: p for p in make_plans(ctx)}
         for p in plans.values():  # compile every kernel before timing
             p.search(queries[0], 0, args.k, p.budgets[0])
         methods = [PlannedSearch(ctx, plans, planner, stats[s]), ThresholdSearch(ctx, plans, rule),
                    FixedSearch(ctx, plans, fixed)]
         for m in methods:
-            df = run_plan(m, queries, wl, gt, rows, args.k, 0)
+            df = run_plan(m, queries, wl, gt, rows, args.k, 0, gt_d)
             df.insert(0, "scheme", s)
             frames.append(df)
             print(f"  {s:11} {m.name:9} recall={df.recall.mean():.3f} mean={df.latency_ms.mean():7.2f}ms "
@@ -112,8 +135,15 @@ def main():
         p95_ms=("latency_ms", lambda x: np.percentile(x, 95))).reset_index()
     summary.to_csv(ROOT / "results" / f"{args.dataset}_planner_test_summary.csv", index=False)
     (ROOT / "results" / f"{args.dataset}_planner_config.json").write_text(json.dumps({
-        "target": args.target, "tau": planner.tau, "threshold_theta": rule.theta,
+        "target": args.target, "margin": args.margin, "taus": planner.taus.tolist(),
+        "bucket_edges_log10_sel": planner.bucket_edges.tolist(), "threshold_theta": rule.theta,
         "threshold_fallback": rule.fallback, "best_fixed": fixed}, indent=2, default=float))
+
+    oracle = oracle_from_test_sweeps(args.dataset, args.schemes, args.target)
+    if oracle is not None:
+        print(f"\nOracle (hindsight, from test sweeps, {len(oracle)} queries): recall={oracle.recall.mean():.3f} "
+              f"mean={oracle.latency_ms.mean():.2f}ms p50={oracle.latency_ms.median():.2f}ms")
+        oracle.to_csv(ROOT / "results" / f"{args.dataset}_oracle_test.csv", index=False)
 
     pd.set_option("display.width", 200)
     print("\n" + summary.round(3).to_string(index=False))
