@@ -1,0 +1,49 @@
+Methods tuned for recall@10 = 0.95 on validation, scored on identical test executions. 'Worst selectivity' is the lowest per-selectivity mean recall.
+
+| Dataset | Labels | Method | Recall@10 | Worst selectivity | Mean ms | p50 ms | p95 ms |
+|---|---|---|---|---|---|---|---|
+| SIFT1M | both | Cost-model planner | 0.967 | 0.943 | 0.902 | 0.120 | 12.296 |
+| SIFT1M | indep. | Cost-model planner | 0.975 | 0.949 | 0.110 | 0.111 | 0.208 |
+| SIFT1M | corr. | Cost-model planner | 0.959 | 0.923 | 1.694 | 0.143 | 12.454 |
+| SIFT1M | both | Planner (global sel. only) | 0.984 | 0.952 | 7.140 | 0.173 | 61.260 |
+| SIFT1M | indep. | Planner (global sel. only) | 0.995 | 0.978 | 0.271 | 0.178 | 0.747 |
+| SIFT1M | corr. | Planner (global sel. only) | 0.974 | 0.926 | 14.008 | 0.170 | 136.438 |
+| SIFT1M | both | Threshold rule | 1.000 | 1.000 | 5.549 | 3.916 | 14.836 |
+| SIFT1M | indep. | Threshold rule | 1.000 | 1.000 | 6.152 | 4.251 | 15.106 |
+| SIFT1M | corr. | Threshold rule | 1.000 | 1.000 | 4.945 | 3.916 | 12.632 |
+| SIFT1M | both | Best fixed config | 1.000 | 1.000 | 5.547 | 3.915 | 14.835 |
+| SIFT1M | indep. | Best fixed config | 1.000 | 1.000 | 6.151 | 4.250 | 15.105 |
+| SIFT1M | corr. | Best fixed config | 1.000 | 1.000 | 4.943 | 3.915 | 12.630 |
+| SIFT1M | both | Oracle (hindsight) | 0.951 | 0.820 | 0.148 | 0.090 | 0.240 |
+| SIFT1M | indep. | Oracle (hindsight) | 1.000 | 1.000 | 0.087 | 0.076 | 0.213 |
+| SIFT1M | corr. | Oracle (hindsight) | 0.902 | 0.639 | 0.208 | 0.123 | 0.250 |
+| GloVe-100 | both | Cost-model planner | 0.973 | 0.958 | 0.500 | 0.310 | 1.143 |
+| GloVe-100 | indep. | Cost-model planner | 0.983 | 0.966 | 0.425 | 0.472 | 1.047 |
+| GloVe-100 | corr. | Cost-model planner | 0.963 | 0.950 | 0.576 | 0.232 | 1.384 |
+| GloVe-100 | both | Planner (global sel. only) | 0.985 | 0.958 | 0.575 | 0.465 | 1.635 |
+| GloVe-100 | indep. | Planner (global sel. only) | 0.989 | 0.966 | 0.569 | 0.472 | 1.597 |
+| GloVe-100 | corr. | Planner (global sel. only) | 0.981 | 0.951 | 0.582 | 0.454 | 1.745 |
+| GloVe-100 | both | Threshold rule | 0.962 | 0.897 | 0.328 | 0.236 | 0.978 |
+| GloVe-100 | indep. | Threshold rule | 0.970 | 0.912 | 0.358 | 0.277 | 1.039 |
+| GloVe-100 | corr. | Threshold rule | 0.955 | 0.882 | 0.297 | 0.231 | 0.832 |
+| GloVe-100 | both | Best fixed config | 1.000 | 1.000 | 3.553 | 3.420 | 8.371 |
+| GloVe-100 | indep. | Best fixed config | 1.000 | 1.000 | 3.491 | 3.420 | 8.072 |
+| GloVe-100 | corr. | Best fixed config | 1.000 | 1.000 | 3.614 | 3.341 | 8.604 |
+| GloVe-100 | both | Oracle (hindsight) | 0.950 | 0.896 | 0.126 | 0.109 | 0.343 |
+| GloVe-100 | indep. | Oracle (hindsight) | 0.958 | 0.897 | 0.117 | 0.092 | 0.336 |
+| GloVe-100 | corr. | Oracle (hindsight) | 0.943 | 0.880 | 0.135 | 0.126 | 0.345 |
+| Deep1M | both | Cost-model planner | 0.964 | 0.939 | 0.129 | 0.116 | 0.276 |
+| Deep1M | indep. | Cost-model planner | 0.980 | 0.961 | 0.108 | 0.114 | 0.195 |
+| Deep1M | corr. | Cost-model planner | 0.949 | 0.917 | 0.150 | 0.123 | 0.394 |
+| Deep1M | both | Planner (global sel. only) | 0.980 | 0.955 | 0.488 | 0.139 | 0.514 |
+| Deep1M | indep. | Planner (global sel. only) | 0.991 | 0.968 | 0.156 | 0.138 | 0.342 |
+| Deep1M | corr. | Planner (global sel. only) | 0.969 | 0.935 | 0.819 | 0.140 | 5.582 |
+| Deep1M | both | Threshold rule | 0.966 | 0.917 | 0.181 | 0.135 | 0.486 |
+| Deep1M | indep. | Threshold rule | 0.998 | 0.994 | 0.191 | 0.155 | 0.463 |
+| Deep1M | corr. | Threshold rule | 0.934 | 0.841 | 0.171 | 0.130 | 0.643 |
+| Deep1M | both | Best fixed config | 1.000 | 1.000 | 3.232 | 3.211 | 7.016 |
+| Deep1M | indep. | Best fixed config | 1.000 | 1.000 | 3.244 | 3.200 | 7.072 |
+| Deep1M | corr. | Best fixed config | 1.000 | 1.000 | 3.220 | 3.221 | 6.944 |
+| Deep1M | both | Oracle (hindsight) | 0.950 | 0.897 | 0.064 | 0.060 | 0.137 |
+| Deep1M | indep. | Oracle (hindsight) | 0.971 | 0.945 | 0.052 | 0.050 | 0.100 |
+| Deep1M | corr. | Oracle (hindsight) | 0.929 | 0.849 | 0.077 | 0.077 | 0.145 |

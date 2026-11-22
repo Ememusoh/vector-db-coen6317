@@ -25,23 +25,8 @@ from vdb.eval import run_plan, sample_rows  # noqa: E402
 from vdb.index import HNSWIndex, IVFIndex  # noqa: E402
 from vdb.planner import (CoarseStats, CostModelPlanner, FixedSearch, PlannedSearch,  # noqa: E402
                          ThresholdRule, ThresholdSearch, config_key, oracle_choice)
+from vdb.planner.data import load_split  # noqa: E402
 from vdb.plans import FilterContext, make_plans  # noqa: E402
-
-
-def load_training(dataset, schemes, queries, stats):
-    feats, tables, sels, groups, offset = [], [], [], [], 0
-    for s in schemes:
-        df = pd.read_parquet(ROOT / "results" / "raw" / f"{dataset}_{s}_val.parquet")
-        rows = np.sort(df.row.unique())
-        first = df.drop_duplicates("row").set_index("row").loc[rows]
-        feats.append(stats[s].features_batch(queries[first.query_id.to_numpy()], first.label.to_numpy()))
-        sels.append(first.selectivity.to_numpy())
-        groups.append(first.query_id.to_numpy())
-        t = df.assign(qi=offset + np.searchsorted(rows, df.row),
-                      config=[config_key(p, b) for p, b in zip(df.plan, df.budget)])
-        tables.append(t[["qi", "config", "recall", "latency_ms"]])
-        offset += rows.size
-    return np.vstack(feats), pd.concat(tables, ignore_index=True), np.concatenate(sels), np.concatenate(groups)
 
 
 def oracle_from_test_sweeps(dataset, schemes, target):
@@ -96,7 +81,8 @@ def main():
         stats[s] = CoarseStats.build(base, labels, centroids)
     print(f"loaded in {time.time() - t0:.0f}s")
 
-    X, table, sel, groups = load_training(args.dataset, args.schemes, queries, stats)
+    X, table, meta = load_split(args.dataset, args.schemes, "val", queries, stats)
+    sel, groups = meta.selectivity.to_numpy(), meta.query_id.to_numpy()
     planner = CostModelPlanner(target=args.target, margin=args.margin,
                                per_bucket=not args.no_buckets).fit(X, table, groups)
     rule = ThresholdRule(target=args.target).fit(sel, table)
