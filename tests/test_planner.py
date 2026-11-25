@@ -97,3 +97,24 @@ def test_oracle_meets_target_at_min_cost():
     r = rec[np.arange(4), idx]
     assert r.mean() >= 0.75
     assert lat[np.arange(4), idx].sum() == 1 + 1 + 5 + 1  # gives up only query 0, the costliest to fix
+
+
+def test_lagrangian_planner_learns_when_fast_is_safe_and_matches_numba():
+    from vdb.planner import LagrangianPlanner
+    X, table = synthetic_table()
+    m = LagrangianPlanner(target=0.95).fit(X, table)
+    assert m.choose(np.array([2.0, 0.0])) == "fast@1"
+    assert m.choose(np.array([-2.0, 0.0])) == "slow@1"
+    rng = np.random.default_rng(3)
+    Xq = rng.standard_normal((200, 2)) * 2
+    assert (m.choose_batch(Xq) == np.array([m.choose_index(x) for x in Xq])).all()
+
+
+def test_lagrangian_planner_meets_target_on_training_mix():
+    from vdb.planner import LagrangianPlanner
+    X, table = synthetic_table(n=800, seed=4)
+    m = LagrangianPlanner(target=0.9).fit(X, table)
+    rec = table.pivot(index="qi", columns="config", values="recall")[m.configs].to_numpy()
+    j = m.choose_batch(X)
+    assert rec[np.arange(len(X)), j].mean() >= 0.88
+    assert (np.array(m.configs)[j] == "fast@1").mean() > 0.3  # it must use the cheap plan where safe

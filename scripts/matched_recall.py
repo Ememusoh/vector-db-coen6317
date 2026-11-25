@@ -8,8 +8,9 @@ difference is the choice. Planning overhead (measured in the live runs) is
 added to the planner's latency.
 
 Methods
-    planner         cost-model planner (global + local selectivity features)
+    planner         Lagrangian cost-model planner (global + local selectivity features)
     planner_global  ablation: same model, global selectivity features only
+    planner_cutoff  earlier planner: per-query probability cutoff, one per selectivity
     threshold       pre-filter below a tuned selectivity, else one tuned config
     fixed           single best config
     oracle          hindsight per-query optimum (lower bound on latency)
@@ -32,7 +33,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from vdb.data import datasets  # noqa: E402
-from vdb.planner import CoarseStats, CostModelPlanner, ThresholdRule, oracle_choice  # noqa: E402
+from vdb.planner import CoarseStats, CostModelPlanner, LagrangianPlanner, ThresholdRule, oracle_choice  # noqa: E402
 from vdb.planner.data import load_split, matrices  # noqa: E402
 
 SCHEMES = ("independent", "correlated")
@@ -73,15 +74,18 @@ def run_dataset(ds, targets):
         picks = {}
         for name, cols in (("planner", None), ("planner_global", GLOBAL_FEATURES)):
             Xa, Xb = (Xv, Xt) if cols is None else (Xv[:, cols], Xt[:, cols])
-            m = CostModelPlanner(target=T, margin=0.0).fit(Xa, tv, groups)
+            m = LagrangianPlanner(target=T, margin=0.0).fit(Xa, tv, groups)
             picks[name] = np.array([col[m.configs[i]] for i in m.choose_batch(Xb)])
+        m = CostModelPlanner(target=T, margin=0.0).fit(Xv, tv, groups)
+        picks["planner_cutoff"] = np.array([col[m.configs[i]] for i in m.choose_batch(Xt)])
         rule = ThresholdRule(target=T).fit(sel_v, tv)
         picks["threshold"] = np.array([col[rule.choose(s)] for s in sel_t])
         rv, lv, cv = matrices(tv, len(mv))
         fj = fixed_choice(rv, lv, T)[0]
         picks["fixed"] = np.full(len(mt), col[cv[fj]])
         picks["oracle"] = oracle_choice(rec_t, lat_t, T)
-        overhead = {"planner": ov_planner, "planner_global": ov_planner, "threshold": ov_rule}
+        overhead = {"planner": ov_planner, "planner_global": ov_planner, "planner_cutoff": ov_planner,
+                    "threshold": ov_rule}
         for name, j in picks.items():
             r, t = rec_t[rows, j], lat_t[rows, j] + overhead.get(name, 0.0)
             for scope, mask in [("all", np.ones(len(mt), bool))] + [(s, (mt.scheme == s).to_numpy()) for s in SCHEMES]:
@@ -105,6 +109,7 @@ def plot(df):
     styles = {
         "planner":        ("Cost-model planner",            mf.METHODS["planner"][1], "o", "-", True),
         "planner_global": ("Planner, global selectivity only", mf.METHODS["planner"][1], "o", (0, (3, 2)), False),
+        "planner_cutoff": ("Earlier planner (cutoff rule)",   mf.METHODS["planner"][1], "x", (0, (1, 1.5)), True),
         "threshold":      ("Threshold rule",                 mf.METHODS["threshold"][1], "s", "-", True),
         "fixed":          ("Best fixed config",              mf.METHODS["fixed"][1], "D", "-", True),
         "oracle":         ("Oracle (hindsight)",             mf.INK2, "o", (0, (1, 1.5)), False),
@@ -131,9 +136,9 @@ def plot(df):
                for lab, c, mk, ls, f in styles.values()]
     fig.tight_layout(w_pad=0.8)
     top = max(ax.get_position().y1 for ax in axes.flat)
-    fig.legend(handles=handles, loc="lower center", ncol=5, frameon=False, bbox_to_anchor=(0.5, top + 0.05),
+    fig.legend(handles=handles, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, top + 0.05),
                handlelength=2.2, columnspacing=1.2)
-    fig.text(0.5, top + 0.17, "Matched recall: each point is one method tuned for a target in "
+    fig.text(0.5, top + 0.25, "Matched recall: each point is one method tuned for a target in "
              f"{{{', '.join(f'{t:g}' for t in TARGETS)}}} on validation, scored on test (lower-right is better)",
              ha="center", fontsize=7.5, color=mf.INK)
     mf.save(fig, "matched_recall")
@@ -144,6 +149,7 @@ def table(df):
 
     d = df[(df.target == 0.95)].copy()
     names = {"planner": "Cost-model planner", "planner_global": "Planner (global sel. only)",
+             "planner_cutoff": "Earlier planner (cutoff)",
              "threshold": "Threshold rule", "fixed": "Best fixed config", "oracle": "Oracle (hindsight)"}
     d["Dataset"] = d.dataset.map(lambda x: mf.DATASET_NAMES.get(x, x))
     d["Method"] = d.method.map(names)

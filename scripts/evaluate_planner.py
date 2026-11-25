@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT))
 from vdb.data import Workload, datasets  # noqa: E402
 from vdb.eval import run_plan, sample_rows  # noqa: E402
 from vdb.index import HNSWIndex, IVFIndex  # noqa: E402
-from vdb.planner import (CoarseStats, CostModelPlanner, FixedSearch, PlannedSearch,  # noqa: E402
+from vdb.planner import (CoarseStats, CostModelPlanner, FixedSearch, LagrangianPlanner, PlannedSearch,  # noqa: E402
                          ThresholdRule, ThresholdSearch, config_key, oracle_choice)
 from vdb.planner.data import load_split  # noqa: E402
 from vdb.plans import FilterContext, make_plans  # noqa: E402
@@ -61,8 +61,12 @@ def main():
     ap.add_argument("dataset")
     ap.add_argument("--schemes", nargs="+", default=["independent", "correlated"])
     ap.add_argument("--target", type=float, default=0.95)
-    ap.add_argument("--margin", type=float, default=0.01, help="safety buffer added to the target when calibrating")
-    ap.add_argument("--no-buckets", action="store_true", help="calibrate one cutoff for all selectivities")
+    ap.add_argument("--planner", choices=["lagrangian", "cutoff"], default="lagrangian",
+                    help="lagrangian: argmin latency - lam*recall (default); cutoff: earlier per-query probability cutoff")
+    ap.add_argument("--margin", type=float, default=None,
+                    help="safety buffer added to the target when calibrating (default 0.005 lagrangian, 0.01 cutoff)")
+    ap.add_argument("--per-bucket", action="store_true", help="lagrangian: one lam per selectivity level")
+    ap.add_argument("--no-buckets", action="store_true", help="cutoff: one cutoff for all selectivities")
     ap.add_argument("--per-selectivity", type=int, default=100)
     ap.add_argument("--k", type=int, default=10)
     ap.add_argument("--seed", type=int, default=0, help="must match the sweeps' seed for the oracle to line up")
@@ -83,13 +87,19 @@ def main():
 
     X, table, meta = load_split(args.dataset, args.schemes, "val", queries, stats)
     sel, groups = meta.selectivity.to_numpy(), meta.query_id.to_numpy()
-    planner = CostModelPlanner(target=args.target, margin=args.margin,
-                               per_bucket=not args.no_buckets).fit(X, table, groups)
+    if args.margin is None:
+        args.margin = 0.005 if args.planner == "lagrangian" else 0.01
+    if args.planner == "lagrangian":
+        planner = LagrangianPlanner(target=args.target, margin=args.margin, per_bucket=args.per_bucket)
+    else:
+        planner = CostModelPlanner(target=args.target, margin=args.margin, per_bucket=not args.no_buckets)
+    planner.fit(X, table, groups)
+    params = planner.lams if args.planner == "lagrangian" else planner.taus
     rule = ThresholdRule(target=args.target).fit(sel, table)
     fixed = best_fixed(table, args.target)
     print(f"trained on {X.shape[0]} validation queries x {table.config.nunique()} configs")
-    taus = ", ".join(f"{t:.2f}" for t in planner.taus)
-    print(f"  planner cutoffs per selectivity bucket: [{taus}]; threshold rule: prefilter if sel < {rule.theta:g}, "
+    taus = ", ".join(f"{t:.3g}" for t in params)
+    print(f"  {args.planner} planner parameters: [{taus}]; threshold rule: prefilter if sel < {rule.theta:g}, "
           f"else {rule.fallback}; best fixed config: {fixed}")
 
     frames = []
@@ -121,7 +131,8 @@ def main():
         p95_ms=("latency_ms", lambda x: np.percentile(x, 95))).reset_index()
     summary.to_csv(ROOT / "results" / f"{args.dataset}_planner_test_summary.csv", index=False)
     (ROOT / "results" / f"{args.dataset}_planner_config.json").write_text(json.dumps({
-        "target": args.target, "margin": args.margin, "taus": planner.taus.tolist(),
+        "target": args.target, "planner": args.planner, "margin": args.margin,
+        ("lams_ms" if args.planner == "lagrangian" else "taus"): params.tolist(),
         "bucket_edges_log10_sel": planner.bucket_edges.tolist(), "threshold_theta": rule.theta,
         "threshold_fallback": rule.fallback, "best_fixed": fixed}, indent=2, default=float))
 

@@ -91,7 +91,9 @@ python scripts/evaluate_planner.py sift --target 0.95
 
 Trains on the validation sweeps of every scheme and runs live on held-out test queries:
 
-- `planner`: cost-model planner (`vdb/planner/`). Features are global selectivity and *local* selectivity near the query, from a 256-cell histogram. Per (plan, budget) it uses a logistic model for P(high recall) and a linear model for log latency. It picks the fastest config whose predicted probability passes a cutoff calibrated on out-of-fold validation predictions.
+- `planner`: cost-model planner (`vdb/planner/lagrangian.py`). Features are global selectivity and *local* selectivity near the query, from a 256-cell histogram. Per (plan, budget) it predicts expected recall (fractional logistic regression) and log latency (ridge regression), then picks `argmin latency - λ·recall`, the same rule as the hindsight oracle. λ is the smallest value whose out-of-fold validation choices meet the target. The decision runs in Numba (~8 µs). `--planner cutoff` selects the earlier rule (fastest config whose P(high recall) passes a per-selectivity cutoff); `--per-bucket` calibrates one λ per selectivity level.
+
+`python scripts/matched_recall.py` tunes every method for recall targets 0.85 to 0.99 and scores them on identical test executions (including the global-selectivity-only ablation and the earlier cutoff planner).
 - `threshold`: pre-filter if selectivity < θ, else one fixed (plan, budget); θ and the fallback are tuned on validation.
 - `fixed`: the single fastest (plan, budget) meeting the target on validation.
 

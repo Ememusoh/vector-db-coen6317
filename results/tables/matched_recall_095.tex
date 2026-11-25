@@ -6,12 +6,15 @@
 \toprule
 Dataset & Labels & Method & Recall@10 & Worst selectivity & Mean ms & p50 ms & p95 ms \\
 \midrule
-SIFT1M & both & Cost-model planner & 0.967 & 0.943 & 0.902 & 0.120 & 12.296 \\
-SIFT1M & indep. & Cost-model planner & 0.975 & 0.949 & 0.110 & 0.111 & 0.208 \\
-SIFT1M & corr. & Cost-model planner & 0.959 & 0.923 & 1.694 & 0.143 & 12.454 \\
-SIFT1M & both & Planner (global sel. only) & 0.984 & 0.952 & 7.140 & 0.173 & 61.260 \\
-SIFT1M & indep. & Planner (global sel. only) & 0.995 & 0.978 & 0.271 & 0.178 & 0.747 \\
-SIFT1M & corr. & Planner (global sel. only) & 0.974 & 0.926 & 14.008 & 0.170 & 136.438 \\
+SIFT1M & both & Cost-model planner & 0.951 & 0.821 & 0.308 & 0.186 & 0.581 \\
+SIFT1M & indep. & Cost-model planner & 0.999 & 0.997 & 0.249 & 0.197 & 0.595 \\
+SIFT1M & corr. & Cost-model planner & 0.902 & 0.642 & 0.366 & 0.175 & 0.383 \\
+SIFT1M & both & Planner (global sel. only) & 0.950 & 0.897 & 6.395 & 0.143 & 54.404 \\
+SIFT1M & indep. & Planner (global sel. only) & 0.980 & 0.922 & 0.142 & 0.163 & 0.272 \\
+SIFT1M & corr. & Planner (global sel. only) & 0.919 & 0.805 & 12.647 & 0.133 & 122.224 \\
+SIFT1M & both & Earlier planner (cutoff) & 0.967 & 0.943 & 0.901 & 0.118 & 12.294 \\
+SIFT1M & indep. & Earlier planner (cutoff) & 0.975 & 0.949 & 0.108 & 0.109 & 0.206 \\
+SIFT1M & corr. & Earlier planner (cutoff) & 0.959 & 0.923 & 1.693 & 0.142 & 12.452 \\
 SIFT1M & both & Threshold rule & 1.000 & 1.000 & 5.549 & 3.916 & 14.836 \\
 SIFT1M & indep. & Threshold rule & 1.000 & 1.000 & 6.152 & 4.251 & 15.106 \\
 SIFT1M & corr. & Threshold rule & 1.000 & 1.000 & 4.945 & 3.916 & 12.632 \\
@@ -21,27 +24,33 @@ SIFT1M & corr. & Best fixed config & 1.000 & 1.000 & 4.943 & 3.915 & 12.630 \\
 SIFT1M & both & Oracle (hindsight) & 0.951 & 0.820 & 0.148 & 0.090 & 0.240 \\
 SIFT1M & indep. & Oracle (hindsight) & 1.000 & 1.000 & 0.087 & 0.076 & 0.213 \\
 SIFT1M & corr. & Oracle (hindsight) & 0.902 & 0.639 & 0.208 & 0.123 & 0.250 \\
-GloVe-100 & both & Cost-model planner & 0.973 & 0.958 & 0.500 & 0.310 & 1.143 \\
-GloVe-100 & indep. & Cost-model planner & 0.983 & 0.966 & 0.425 & 0.472 & 1.047 \\
-GloVe-100 & corr. & Cost-model planner & 0.963 & 0.950 & 0.576 & 0.232 & 1.384 \\
-GloVe-100 & both & Planner (global sel. only) & 0.985 & 0.958 & 0.575 & 0.465 & 1.635 \\
-GloVe-100 & indep. & Planner (global sel. only) & 0.989 & 0.966 & 0.569 & 0.472 & 1.597 \\
-GloVe-100 & corr. & Planner (global sel. only) & 0.981 & 0.951 & 0.582 & 0.454 & 1.745 \\
-GloVe-100 & both & Threshold rule & 0.962 & 0.897 & 0.328 & 0.236 & 0.978 \\
-GloVe-100 & indep. & Threshold rule & 0.970 & 0.912 & 0.358 & 0.277 & 1.039 \\
-GloVe-100 & corr. & Threshold rule & 0.955 & 0.882 & 0.297 & 0.231 & 0.832 \\
+GloVe-100 & both & Cost-model planner & 0.954 & 0.905 & 0.249 & 0.229 & 0.559 \\
+GloVe-100 & indep. & Cost-model planner & 0.959 & 0.912 & 0.245 & 0.284 & 0.507 \\
+GloVe-100 & corr. & Cost-model planner & 0.949 & 0.886 & 0.253 & 0.215 & 0.603 \\
+GloVe-100 & both & Planner (global sel. only) & 0.950 & 0.897 & 0.237 & 0.243 & 0.508 \\
+GloVe-100 & indep. & Planner (global sel. only) & 0.959 & 0.912 & 0.245 & 0.284 & 0.507 \\
+GloVe-100 & corr. & Planner (global sel. only) & 0.941 & 0.880 & 0.229 & 0.237 & 0.508 \\
+GloVe-100 & both & Earlier planner (cutoff) & 0.973 & 0.958 & 0.499 & 0.308 & 1.142 \\
+GloVe-100 & indep. & Earlier planner (cutoff) & 0.983 & 0.966 & 0.423 & 0.471 & 1.045 \\
+GloVe-100 & corr. & Earlier planner (cutoff) & 0.963 & 0.950 & 0.575 & 0.230 & 1.382 \\
+GloVe-100 & both & Threshold rule & 0.962 & 0.897 & 0.327 & 0.236 & 0.977 \\
+GloVe-100 & indep. & Threshold rule & 0.970 & 0.912 & 0.358 & 0.277 & 1.038 \\
+GloVe-100 & corr. & Threshold rule & 0.955 & 0.882 & 0.297 & 0.230 & 0.831 \\
 GloVe-100 & both & Best fixed config & 1.000 & 1.000 & 3.553 & 3.420 & 8.371 \\
 GloVe-100 & indep. & Best fixed config & 1.000 & 1.000 & 3.491 & 3.420 & 8.072 \\
 GloVe-100 & corr. & Best fixed config & 1.000 & 1.000 & 3.614 & 3.341 & 8.604 \\
 GloVe-100 & both & Oracle (hindsight) & 0.950 & 0.896 & 0.126 & 0.109 & 0.343 \\
 GloVe-100 & indep. & Oracle (hindsight) & 0.958 & 0.897 & 0.117 & 0.092 & 0.336 \\
 GloVe-100 & corr. & Oracle (hindsight) & 0.943 & 0.880 & 0.135 & 0.126 & 0.345 \\
-Deep1M & both & Cost-model planner & 0.964 & 0.939 & 0.129 & 0.116 & 0.276 \\
-Deep1M & indep. & Cost-model planner & 0.980 & 0.961 & 0.108 & 0.114 & 0.195 \\
-Deep1M & corr. & Cost-model planner & 0.949 & 0.917 & 0.150 & 0.123 & 0.394 \\
-Deep1M & both & Planner (global sel. only) & 0.980 & 0.955 & 0.488 & 0.139 & 0.514 \\
-Deep1M & indep. & Planner (global sel. only) & 0.991 & 0.968 & 0.156 & 0.138 & 0.342 \\
-Deep1M & corr. & Planner (global sel. only) & 0.969 & 0.935 & 0.819 & 0.140 & 5.582 \\
+Deep1M & both & Cost-model planner & 0.949 & 0.912 & 0.104 & 0.108 & 0.196 \\
+Deep1M & indep. & Cost-model planner & 0.980 & 0.961 & 0.106 & 0.111 & 0.194 \\
+Deep1M & corr. & Cost-model planner & 0.918 & 0.863 & 0.102 & 0.106 & 0.198 \\
+Deep1M & both & Planner (global sel. only) & 0.938 & 0.855 & 0.369 & 0.107 & 0.350 \\
+Deep1M & indep. & Planner (global sel. only) & 0.972 & 0.907 & 0.094 & 0.112 & 0.145 \\
+Deep1M & corr. & Planner (global sel. only) & 0.905 & 0.729 & 0.644 & 0.097 & 3.979 \\
+Deep1M & both & Earlier planner (cutoff) & 0.964 & 0.939 & 0.128 & 0.115 & 0.276 \\
+Deep1M & indep. & Earlier planner (cutoff) & 0.980 & 0.961 & 0.107 & 0.113 & 0.194 \\
+Deep1M & corr. & Earlier planner (cutoff) & 0.949 & 0.917 & 0.149 & 0.122 & 0.393 \\
 Deep1M & both & Threshold rule & 0.966 & 0.917 & 0.181 & 0.135 & 0.486 \\
 Deep1M & indep. & Threshold rule & 0.998 & 0.994 & 0.191 & 0.155 & 0.463 \\
 Deep1M & corr. & Threshold rule & 0.934 & 0.841 & 0.171 & 0.130 & 0.643 \\

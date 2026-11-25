@@ -1,17 +1,11 @@
 {
   "target": 0.95,
-  "margin": 0.01,
-  "taus": [
-    0.05,
-    0.5900000000000001,
-    0.8300000000000001,
-    0.86
+  "planner": "lagrangian",
+  "margin": 0.005,
+  "lams_ms": [
+    4.154674078567794
   ],
-  "bucket_edges_log10_sel": [
-    -2.5,
-    -1.5,
-    -0.650515
-  ],
+  "bucket_edges_log10_sel": [],
   "threshold_theta": 0.055,
   "threshold_fallback": "ivfpart_in@512",
   "best_fixed": "prefilter@0"

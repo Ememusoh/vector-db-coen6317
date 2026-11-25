@@ -72,3 +72,24 @@ def decide(x, mu, sd, Wr, br, Wl, bl, bucket_edges, taus):
         if p > best_p:
             best_p, best_p_idx = p, c
     return best if best >= 0 else best_p_idx
+
+
+@njit(fastmath=True, cache=True)
+def decide_lagrangian(x, mu, sd, Wr, br, Wl, bl, bucket_edges, lams):
+    """Index of argmin_c latency_c(x) - lam[bucket(x)] * recall_c(x), from the linear models."""
+    F = x.shape[0]
+    z = np.empty(F)
+    for f in range(F):
+        z[f] = (x[f] - mu[f]) / sd[f]
+    lam = lams[np.searchsorted(bucket_edges, x[0])]
+    best, best_score = 0, np.inf
+    for c in range(Wr.shape[0]):
+        sr = br[c]
+        sl = bl[c]
+        for f in range(F):
+            sr += Wr[c, f] * z[f]
+            sl += Wl[c, f] * z[f]
+        score = np.exp(sl) - lam / (1.0 + np.exp(-sr))
+        if score < best_score:
+            best, best_score = c, score
+    return best
