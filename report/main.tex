@@ -175,7 +175,7 @@ The system is about 3\,k lines of Python (Fig.~\ref{fig:impl}). FAISS~\cite{douz
 
 \begin{table}[t]
 \centering\scriptsize\setlength{\tabcolsep}{3pt}
-\caption{Datasets and index construction (float32 vectors; IVF nlist\,=\,4096 for 1M; HNSW M\,=\,32, efC\,=\,200; build times single-threaded). The partitioned IVF adds only a 1.4\,MiB offsets table.}
+\caption{Datasets and index construction (float32 vectors; IVF nlist\,=\,4096 for 1M; HNSW M\,=\,32, efC\,=\,200; FAISS builds use all 10 cores). The partitioned IVF adds only a 1.4\,MiB offsets table.}
 \label{tab:datasets}
 \input{generated/tab_datasets.tex}
 \end{table}
