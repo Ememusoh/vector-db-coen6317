@@ -12,7 +12,19 @@ import numpy as np
 def filtered_knn(base: np.ndarray, queries: np.ndarray, labels: np.ndarray,
                  query_ids: np.ndarray, query_labels: np.ndarray, k: int = 100,
                  chunk: int = 256) -> tuple[np.ndarray, np.ndarray]:
-    """Returns (ids, dists) of shape (W, k), squared L2 distances, ids into base."""
+    """Single label per vector. Returns (ids, dists) of shape (W, k), squared L2 distances, ids into base."""
+    return _knn_by_group(base, queries, query_ids, query_labels, lambda lab: np.flatnonzero(labels == lab), k, chunk)
+
+
+def posting_knn(base: np.ndarray, queries: np.ndarray, order: np.ndarray, offsets: np.ndarray,
+                query_ids: np.ndarray, query_labels: np.ndarray, k: int = 100,
+                chunk: int = 256) -> tuple[np.ndarray, np.ndarray]:
+    """Multi-label: the vectors matching predicate p are order[offsets[p]:offsets[p+1]]."""
+    return _knn_by_group(base, queries, query_ids, query_labels,
+                         lambda p: order[offsets[p]:offsets[p + 1]], k, chunk)
+
+
+def _knn_by_group(base, queries, query_ids, query_labels, members_of, k, chunk):
     import faiss
 
     W = query_ids.size
@@ -22,7 +34,7 @@ def filtered_knn(base: np.ndarray, queries: np.ndarray, labels: np.ndarray,
 
     for lab in np.unique(query_labels):
         rows = np.flatnonzero(query_labels == lab)
-        members = np.flatnonzero(labels == lab)
+        members = np.asarray(members_of(lab), dtype=np.int64)
         if members.size == 0:
             continue
         kk = min(k, members.size)

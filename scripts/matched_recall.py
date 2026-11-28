@@ -36,7 +36,6 @@ from vdb.data import datasets  # noqa: E402
 from vdb.planner import CoarseStats, CostModelPlanner, LagrangianPlanner, ThresholdRule, oracle_choice  # noqa: E402
 from vdb.planner.data import load_split, matrices  # noqa: E402
 
-SCHEMES = ("independent", "correlated")
 TARGETS = (0.85, 0.90, 0.925, 0.95, 0.97, 0.98, 0.99)
 GLOBAL_FEATURES = [0, 1]  # log_sel, log_nelig
 
@@ -58,14 +57,14 @@ def planner_overhead_ms(ds):
 def run_dataset(ds, targets):
     base, queries, _ = datasets.load(ds, mmap=False)
     centroids = CoarseStats.build_centroids(base)
-    stats = {s: CoarseStats.build(base, np.load(datasets.DATA_ROOT / ds / s / "labels.npy"), centroids)
-             for s in SCHEMES}
+    SCHEMES = datasets.schemes(ds)
+    stats = {s: CoarseStats.for_scheme(ds, s, base, centroids) for s in SCHEMES}
     Xv, tv, mv = load_split(ds, SCHEMES, "val", queries, stats)
     Xt, tt, mt = load_split(ds, SCHEMES, "test", queries, stats)
     rec_t, lat_t, configs = matrices(tt, len(mt))
     col = {c: j for j, c in enumerate(configs)}
     groups = mv.query_id.to_numpy()
-    sel_v, sel_t = mv.selectivity.to_numpy(), mt.selectivity.to_numpy()
+    sel_t = mt.selectivity.to_numpy()
     ov_planner, ov_rule = planner_overhead_ms(ds)
     rows = np.arange(len(mt))
 
@@ -78,8 +77,8 @@ def run_dataset(ds, targets):
             picks[name] = np.array([col[m.configs[i]] for i in m.choose_batch(Xb)])
         m = CostModelPlanner(target=T, margin=0.0).fit(Xv, tv, groups)
         picks["planner_cutoff"] = np.array([col[m.configs[i]] for i in m.choose_batch(Xt)])
-        rule = ThresholdRule(target=T).fit(sel_v, tv)
-        picks["threshold"] = np.array([col[rule.choose(s)] for s in sel_t])
+        rule = ThresholdRule(target=T).fit(10 ** Xv[:, 0], tv)  # exact filter selectivity
+        picks["threshold"] = np.array([col[rule.choose(s)] for s in 10 ** Xt[:, 0]])
         rv, lv, cv = matrices(tv, len(mv))
         fj = fixed_choice(rv, lv, T)[0]
         picks["fixed"] = np.full(len(mt), col[cv[fj]])
@@ -88,7 +87,8 @@ def run_dataset(ds, targets):
                     "threshold": ov_rule}
         for name, j in picks.items():
             r, t = rec_t[rows, j], lat_t[rows, j] + overhead.get(name, 0.0)
-            for scope, mask in [("all", np.ones(len(mt), bool))] + [(s, (mt.scheme == s).to_numpy()) for s in SCHEMES]:
+            scopes = [(s, (mt.scheme == s).to_numpy()) for s in SCHEMES] if len(SCHEMES) > 1 else []
+            for scope, mask in [("all", np.ones(len(mt), bool))] + scopes:
                 cells = pd.DataFrame({"sel": sel_t[mask], "r": r[mask]}).groupby("sel").r.mean()
                 out.append(dict(dataset=ds, target=T, method=name, scope=scope, recall=r[mask].mean(),
                                 mean_ms=t[mask].mean(), p50_ms=np.median(t[mask]),

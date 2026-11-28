@@ -26,7 +26,7 @@ from vdb.index import HNSWIndex, IVFIndex  # noqa: E402
 from vdb.planner import (CoarseStats, CostModelPlanner, FixedSearch, LagrangianPlanner, PlannedSearch,  # noqa: E402
                          ThresholdRule, ThresholdSearch, config_key, oracle_choice)
 from vdb.planner.data import load_split  # noqa: E402
-from vdb.plans import FilterContext, make_plans  # noqa: E402
+from vdb.plans import FilterContext, MultiLabelContext, make_plans  # noqa: E402
 
 
 def oracle_from_test_sweeps(dataset, schemes, target):
@@ -59,7 +59,7 @@ def best_fixed(table, target):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dataset")
-    ap.add_argument("--schemes", nargs="+", default=["independent", "correlated"])
+    ap.add_argument("--schemes", nargs="+", default=None, help="default: the dataset's schemes")
     ap.add_argument("--target", type=float, default=0.95)
     ap.add_argument("--planner", choices=["lagrangian", "cutoff"], default="lagrangian",
                     help="lagrangian: argmin latency - lam*recall (default); cutoff: earlier per-query probability cutoff")
@@ -73,6 +73,7 @@ def main():
     args = ap.parse_args()
 
     t0 = time.time()
+    args.schemes = args.schemes or list(datasets.schemes(args.dataset))
     base, queries, _ = datasets.load(args.dataset, mmap=False)
     idx = ROOT / "indexes" / args.dataset
     ivf = IVFIndex.load(next(idx.glob("ivf_*.npz")), base)
@@ -80,13 +81,17 @@ def main():
     centroids = CoarseStats.build_centroids(base)
     ctxs, stats = {}, {}
     for s in args.schemes:
-        labels = np.load(datasets.DATA_ROOT / args.dataset / s / "labels.npy")
-        ctxs[s] = FilterContext.from_parts(base, labels, ivf, hnsw)
-        stats[s] = CoarseStats.build(base, labels, centroids)
+        d = datasets.DATA_ROOT / args.dataset / s
+        if (d / "postings.npz").exists():
+            z = np.load(d / "postings.npz")
+            ctxs[s] = MultiLabelContext.from_postings(base, z["order"], z["offsets"], ivf, hnsw)
+        else:
+            ctxs[s] = FilterContext.from_parts(base, np.load(d / "labels.npy"), ivf, hnsw)
+        stats[s] = CoarseStats.for_scheme(args.dataset, s, base, centroids)
     print(f"loaded in {time.time() - t0:.0f}s")
 
     X, table, meta = load_split(args.dataset, args.schemes, "val", queries, stats)
-    sel, groups = meta.selectivity.to_numpy(), meta.query_id.to_numpy()
+    sel, groups = 10 ** X[:, 0], meta.query_id.to_numpy()  # exact selectivity of each query's filter
     if args.margin is None:
         args.margin = 0.005 if args.planner == "lagrangian" else 0.01
     if args.planner == "lagrangian":
@@ -112,7 +117,8 @@ def main():
         rows = sample_rows(wl, "test", args.per_selectivity, args.seed)
         plans = {p.name: p for p in make_plans(ctx)}
         for p in plans.values():  # compile every kernel before timing
-            p.search(queries[0], 0, args.k, p.budgets[0])
+            ctx.prepare(int(wl.labels[rows[0]]))
+            p.search(queries[0], int(wl.labels[rows[0]]), args.k, p.budgets[0])
         methods = [PlannedSearch(ctx, plans, planner, stats[s]), ThresholdSearch(ctx, plans, rule),
                    FixedSearch(ctx, plans, fixed)]
         for m in methods:

@@ -84,3 +84,40 @@ def test_tie_aware_recall():
     assert recall_at_k(found, gt, 3) == 2 / 3
     assert recall_at_k(found, gt, 3, fd, gd) == 1.0
     assert recall_at_k(found, gt, 3, np.array([1.0, 2.0, 2.5], np.float32), gd) == 2 / 3
+
+
+def test_multilabel_context_matches_bruteforce():
+    """Overlapping tags: every plan returns only vectors carrying the tag, and
+    high-budget plans reach the exact answer computed from the posting lists."""
+    from vdb.data.groundtruth import posting_knn
+    from vdb.plans import MultiLabelContext
+
+    rng = np.random.default_rng(5)
+    n, d = 4000, 16
+    base = rng.standard_normal((n, d)).astype(np.float32)
+    queries = rng.standard_normal((6, d)).astype(np.float32)
+    postings = [np.sort(rng.choice(n, size, replace=False)) for size in (2000, 400, 40)]  # overlapping tags
+    order = np.concatenate(postings)
+    offsets = np.r_[0, np.cumsum([p.size for p in postings])]
+    ivf = IVFIndex.build(base, nlist=32)
+    hnsw = HNSWIndex.build(base, M=16, ef_construction=100)
+    ctx = MultiLabelContext.from_postings(base, order, offsets, ivf, hnsw)
+    assert ctx.pivf is None
+    qids = np.repeat(np.arange(6), 3)
+    labs = np.tile(np.arange(3), 6)
+    gt, _ = posting_knn(base, queries, order, offsets, qids, labs, k=10)
+    top = {"prefilter": 0, "ivf_post": 32, "ivf_in": 32, "hnsw_post": 1024, "hnsw_in": 512}
+    plans = make_plans(ctx)
+    assert {p.name for p in plans} == set(top)
+    for i, (q, lab) in enumerate(zip(qids, labs)):
+        ctx.prepare(int(lab))
+        members = set(postings[lab].tolist())
+        for p in plans:
+            r = p.search(queries[q], int(lab), 10, top[p.name])
+            found = r.ids[r.ids >= 0]
+            assert set(found.tolist()) <= members, p.name
+            assert recall_at_k(r.ids, gt[i], 10) >= (1.0 if p.name != "hnsw_in" else 0.9), p.name
+    # switching predicates must clear the previous one completely
+    ctx.prepare(2)
+    assert (ctx.labels == 2).sum() == 40 and (ctx.labels >= 0).sum() == 40
+    assert (ctx.ivf_list_labels == 2).sum() == 40

@@ -79,6 +79,14 @@ REGISTRY: dict[str, DatasetSpec] = {
 }
 
 
+NATIVE_LABELS = {"yfcc"}  # datasets with their own (multi-label) attributes; see vdb/data/yfcc.py
+
+
+def schemes(name: str) -> tuple[str, ...]:
+    """Attribute schemes evaluated for a dataset."""
+    return ("native",) if name in NATIVE_LABELS else ("independent", "correlated")
+
+
 def raw_dir(name: str) -> Path:
     return DATA_ROOT / name / "raw"
 

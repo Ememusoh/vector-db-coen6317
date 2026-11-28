@@ -1,0 +1,12 @@
+\begin{tabular}{llllll}
+\toprule
+Dataset & Labels & 50\% & 10\% & 1\% & 0.1\% \\
+\midrule
+SIFT1M & ind. & HNSW-in/32 (96$\times$) & PIVF-in/128 (55$\times$) & PIVF-in/256 (2$\times$) & Pre \\
+SIFT1M & corr. & HNSW-in/64 (60$\times$) & PIVF-in/1024 (17$\times$) & Pre & Pre \\
+GloVe-100 & ind. & IVF-post/256 (9$\times$) & PIVF-in/1024 (12$\times$) & Pre & Pre \\
+GloVe-100 & corr. & HNSW-post/256 (6$\times$) & PIVF-in/1024 (10$\times$) & Pre & Pre \\
+Deep1M & ind. & HNSW-in/32 (54$\times$) & PIVF-in/64 (72$\times$) & PIVF-in/256 & Pre \\
+Deep1M & corr. & IVF-post/32 (21$\times$) & PIVF-in/1024 (16$\times$) & Pre & Pre \\
+\bottomrule
+\end{tabular}
