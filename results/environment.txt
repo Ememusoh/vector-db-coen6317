@@ -1,5 +1,5 @@
-date: 2026-11-28T13:56Z
-commit: f555eec
+date: 2026-11-28T15:52Z
+commit: a525b1e
 os: Darwin 24.1.0 arm64
 cpu: Apple M4
 memory_gb: 16
@@ -8,4 +8,4 @@ numpy: 2.5.5
 numba: 0.68.1
 faiss: 1.16.0
 scikit-learn: 1.9.1
-datasets: gist   val/test queries per selectivity: 200/100
+datasets: yfcc   val/test queries per selectivity: 200/100

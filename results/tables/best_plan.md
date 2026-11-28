@@ -34,3 +34,7 @@ Fastest single plan reaching recall@10 ≥ 0.95, per selectivity (from the budge
 | SIFT1M | correlated | 10% | Partitioned IVF in-search | 1024 | 0.404 | 7.049 |
 | SIFT1M | correlated | 1% | Pre-filter (exact) | – | 0.160 | 0.160 |
 | SIFT1M | correlated | 0.1% | Pre-filter (exact) | – | 0.017 | 0.017 |
+| YFCC | native | 3.7% | IVF in-search | 64 | 0.209 | 5.596 |
+| YFCC | native | 0.42% | IVF in-search | 256 | 0.189 | 0.436 |
+| YFCC | native | 0.045% | Pre-filter (exact) | – | 0.050 | 0.050 |
+| YFCC | native | 0.0016% | Pre-filter (exact) | – | 0.004 | 0.004 |

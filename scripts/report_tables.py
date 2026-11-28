@@ -69,7 +69,7 @@ def matched(dsets, mac):
     methods = [("planner", "Planner"), ("threshold", "Threshold"), ("fixed", "Best fixed"),
                ("planner_global", "Global-only"), ("oracle", "Oracle")]
     rows = []
-    speed = []
+    speed, gaps = [], []
     for ds in dsets:
         d = df[df.dataset == ds].set_index("method")
         if d.empty:
@@ -86,12 +86,15 @@ def matched(dsets, mac):
         so = d.loc["planner", "mean_ms"] / d.loc["oracle", "mean_ms"]
         sg = d.loc["planner_global", "mean_ms"] / d.loc["planner", "mean_ms"]
         speed.append(sp)
+        gaps.append(so)
         mac.add(f"mr{MACRO[ds]}Speedup", sp, "{:.1f}")
         mac.add(f"mr{MACRO[ds]}OracleGap", so, "{:.1f}")
         mac.add(f"mr{MACRO[ds]}GlobalSlowdown", sg, "{:.1f}")
         rows.append(f"{NAMES[ds]} & " + " & ".join(cells) + f" & {sp:.1f}$\\times$")
     mac.add("mrSpeedupMin", min(speed), "{:.1f}")
     mac.add("mrSpeedupMax", max(speed), "{:.1f}")
+    mac.add("mrOracleGapMin", min(gaps), "{:.1f}")
+    mac.add("mrOracleGapMax", max(gaps), "{:.1f}")
     head = " & " + " & ".join(rf"\multicolumn{{2}}{{c}}{{{n}}}" for _, n in methods) + r" & Speed-up \\" + "\n"
     head += " ".join(rf"\cmidrule(lr){{{2 + 2 * i}-{3 + 2 * i}}}" for i in range(len(methods))) + "\n"
     head += "Dataset & " + " & ".join(["R@10 & ms"] * len(methods)) + " & vs. thr."

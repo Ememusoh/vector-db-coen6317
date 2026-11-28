@@ -2,35 +2,39 @@ Planner vs baselines on held-out test queries (end-to-end latency, planning incl
 
 | Dataset | Labels | Method | Recall@10 | Mean ms | p50 ms | p95 ms | Speed-up |
 |---|---|---|---|---|---|---|---|
-| SIFT1M | independent | Cost-model planner | 0.999 | 0.451 | 0.196 | 1.716 | 12.5 |
-| SIFT1M | independent | Threshold rule | 1.000 | 5.643 | 4.259 | 14.604 | 1.0 |
-| SIFT1M | independent | Best fixed config | 1.000 | 5.613 | 4.173 | 14.527 | 1.0 |
-| SIFT1M | independent | Oracle (hindsight) | 1.000 | 0.087 | 0.076 | 0.213 | 64.8 |
-| SIFT1M | correlated | Cost-model planner | 0.914 | 0.562 | 0.170 | 0.835 | 8.8 |
-| SIFT1M | correlated | Threshold rule | 1.000 | 4.933 | 3.870 | 12.284 | 1.0 |
-| SIFT1M | correlated | Best fixed config | 1.000 | 4.979 | 3.899 | 12.662 | 1.0 |
-| SIFT1M | correlated | Oracle (hindsight) | 0.902 | 0.208 | 0.123 | 0.250 | 23.7 |
-| GIST-500K | independent | Cost-model planner | 0.967 | 0.950 | 0.536 | 3.541 | 1.4 |
-| GIST-500K | independent | Threshold rule | 0.994 | 1.293 | 0.768 | 4.046 | 1.0 |
-| GIST-500K | independent | Best fixed config | 0.997 | 2.087 | 0.965 | 6.768 | 0.6 |
-| GIST-500K | independent | Oracle (hindsight) | 0.962 | 0.311 | 0.260 | 0.789 | 4.2 |
-| GIST-500K | correlated | Cost-model planner | 0.948 | 0.986 | 0.615 | 2.949 | 1.2 |
-| GIST-500K | correlated | Threshold rule | 0.945 | 1.179 | 0.321 | 5.260 | 1.0 |
-| GIST-500K | correlated | Best fixed config | 0.950 | 2.052 | 0.607 | 8.423 | 0.6 |
-| GIST-500K | correlated | Oracle (hindsight) | 0.938 | 0.356 | 0.326 | 0.917 | 3.3 |
-| GloVe-100 | independent | Cost-model planner | 0.959 | 0.284 | 0.264 | 0.784 | 1.1 |
-| GloVe-100 | independent | Threshold rule | 0.970 | 0.308 | 0.257 | 0.812 | 1.0 |
-| GloVe-100 | independent | Best fixed config | 1.000 | 3.220 | 3.280 | 6.737 | 0.1 |
-| GloVe-100 | independent | Oracle (hindsight) | 0.958 | 0.117 | 0.092 | 0.336 | 2.6 |
-| GloVe-100 | correlated | Cost-model planner | 0.959 | 0.298 | 0.250 | 0.767 | 1.0 |
-| GloVe-100 | correlated | Threshold rule | 0.955 | 0.285 | 0.218 | 0.797 | 1.0 |
-| GloVe-100 | correlated | Best fixed config | 1.000 | 3.216 | 3.210 | 6.746 | 0.1 |
-| GloVe-100 | correlated | Oracle (hindsight) | 0.943 | 0.135 | 0.126 | 0.345 | 2.1 |
-| Deep1M | independent | Cost-model planner | 0.980 | 0.260 | 0.123 | 0.967 | 0.8 |
-| Deep1M | independent | Threshold rule | 0.998 | 0.210 | 0.152 | 0.542 | 1.0 |
-| Deep1M | independent | Best fixed config | 1.000 | 3.186 | 3.204 | 6.737 | 0.1 |
-| Deep1M | independent | Oracle (hindsight) | 0.971 | 0.052 | 0.050 | 0.100 | 4.1 |
-| Deep1M | correlated | Cost-model planner | 0.926 | 0.154 | 0.126 | 0.429 | 1.3 |
-| Deep1M | correlated | Threshold rule | 0.934 | 0.198 | 0.119 | 0.728 | 1.0 |
-| Deep1M | correlated | Best fixed config | 1.000 | 3.173 | 3.219 | 6.698 | 0.1 |
-| Deep1M | correlated | Oracle (hindsight) | 0.929 | 0.077 | 0.077 | 0.145 | 2.6 |
+| SIFT1M | independent | Cost-model planner | 0.999 | 0.241 | 0.198 | 0.563 | 23.5 |
+| SIFT1M | independent | Threshold rule | 1.000 | 5.662 | 4.222 | 14.851 | 1.0 |
+| SIFT1M | independent | Best fixed config | 1.000 | 5.668 | 4.271 | 14.779 | 1.0 |
+| SIFT1M | independent | Oracle (hindsight) | 1.000 | 0.087 | 0.076 | 0.213 | 65.1 |
+| SIFT1M | correlated | Cost-model planner | 0.914 | 0.514 | 0.181 | 0.417 | 9.9 |
+| SIFT1M | correlated | Threshold rule | 1.000 | 5.066 | 3.868 | 13.548 | 1.0 |
+| SIFT1M | correlated | Best fixed config | 1.000 | 4.918 | 3.851 | 12.431 | 1.0 |
+| SIFT1M | correlated | Oracle (hindsight) | 0.902 | 0.208 | 0.123 | 0.250 | 24.3 |
+| GIST-500K | independent | Cost-model planner | 0.967 | 0.521 | 0.478 | 1.263 | 2.4 |
+| GIST-500K | independent | Threshold rule | 0.994 | 1.237 | 0.553 | 4.002 | 1.0 |
+| GIST-500K | independent | Best fixed config | 0.997 | 2.124 | 0.965 | 6.828 | 0.6 |
+| GIST-500K | independent | Oracle (hindsight) | 0.962 | 0.311 | 0.260 | 0.789 | 4.0 |
+| GIST-500K | correlated | Cost-model planner | 0.948 | 0.583 | 0.538 | 1.326 | 1.9 |
+| GIST-500K | correlated | Threshold rule | 0.945 | 1.130 | 0.333 | 4.884 | 1.0 |
+| GIST-500K | correlated | Best fixed config | 0.950 | 2.096 | 0.586 | 8.520 | 0.5 |
+| GIST-500K | correlated | Oracle (hindsight) | 0.938 | 0.356 | 0.326 | 0.917 | 3.2 |
+| GloVe-100 | independent | Cost-model planner | 0.959 | 0.242 | 0.280 | 0.490 | 1.3 |
+| GloVe-100 | independent | Threshold rule | 0.970 | 0.324 | 0.268 | 0.836 | 1.0 |
+| GloVe-100 | independent | Best fixed config | 1.000 | 3.289 | 3.280 | 6.887 | 0.1 |
+| GloVe-100 | independent | Oracle (hindsight) | 0.958 | 0.117 | 0.092 | 0.336 | 2.8 |
+| GloVe-100 | correlated | Cost-model planner | 0.959 | 0.281 | 0.277 | 0.614 | 1.1 |
+| GloVe-100 | correlated | Threshold rule | 0.955 | 0.299 | 0.228 | 0.814 | 1.0 |
+| GloVe-100 | correlated | Best fixed config | 1.000 | 3.270 | 3.352 | 6.831 | 0.1 |
+| GloVe-100 | correlated | Oracle (hindsight) | 0.943 | 0.135 | 0.126 | 0.345 | 2.2 |
+| Deep1M | independent | Cost-model planner | 0.980 | 0.097 | 0.110 | 0.156 | 1.9 |
+| Deep1M | independent | Threshold rule | 0.998 | 0.187 | 0.156 | 0.447 | 1.0 |
+| Deep1M | independent | Best fixed config | 1.000 | 3.280 | 3.213 | 7.008 | 0.1 |
+| Deep1M | independent | Oracle (hindsight) | 0.971 | 0.052 | 0.050 | 0.100 | 3.6 |
+| Deep1M | correlated | Cost-model planner | 0.926 | 0.107 | 0.108 | 0.206 | 1.6 |
+| Deep1M | correlated | Threshold rule | 0.934 | 0.168 | 0.135 | 0.610 | 1.0 |
+| Deep1M | correlated | Best fixed config | 1.000 | 3.211 | 3.233 | 6.773 | 0.1 |
+| Deep1M | correlated | Oracle (hindsight) | 0.929 | 0.077 | 0.077 | 0.145 | 2.2 |
+| YFCC | native | Cost-model planner | 0.967 | 0.091 | 0.098 | 0.200 | 1.1 |
+| YFCC | native | Threshold rule | 0.959 | 0.097 | 0.088 | 0.291 | 1.0 |
+| YFCC | native | Best fixed config | 1.000 | 1.739 | 0.117 | 10.551 | 0.1 |
+| YFCC | native | Oracle (hindsight) | 0.951 | 0.060 | 0.066 | 0.125 | 1.6 |

@@ -121,6 +121,10 @@ def main():
             p.search(queries[0], int(wl.labels[rows[0]]), args.k, p.budgets[0])
         methods = [PlannedSearch(ctx, plans, planner, stats[s]), ThresholdSearch(ctx, plans, rule),
                    FixedSearch(ctx, plans, fixed)]
+        # untimed pass over the same rows first: whichever method ran first otherwise paid for cold
+        # memory and caches (up to 4x on YFCC), which biased the comparison against it
+        for m in methods:
+            run_plan(m, queries, wl, gt, rows, args.k, 0, gt_d)
         for m in methods:
             df = run_plan(m, queries, wl, gt, rows, args.k, 0, gt_d)
             df.insert(0, "scheme", s)

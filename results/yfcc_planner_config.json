@@ -1,0 +1,12 @@
+{
+  "target": 0.95,
+  "planner": "lagrangian",
+  "margin": 0.005,
+  "lams_ms": [
+    0.7540732886707726
+  ],
+  "bucket_edges_log10_sel": [],
+  "threshold_theta": 0.0014244999999999996,
+  "threshold_fallback": "ivf_in@64",
+  "best_fixed": "prefilter@0"
+}

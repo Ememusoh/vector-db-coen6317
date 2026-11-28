@@ -129,7 +129,7 @@ def plot(df):
         mf.log_ms_axis(ax.yaxis, lo, hi)
         ax.set_xlim(0.84, 1.003)
         ax.set_title(mf.DATASET_NAMES.get(ds, ds), color=mf.INK)
-        ax.set_xlabel("achieved recall@10 on test queries")
+        ax.set_xlabel("achieved recall@10 on test queries" if len(dsets) <= 3 else "achieved recall@10")
     axes[0, 0].set_ylabel("mean latency (ms)")
     handles = [Line2D([], [], color=c, linestyle=ls, marker=mk, markersize=4, linewidth=1.1,
                       markerfacecolor=c if f else mf.SURFACE, markeredgecolor=c, label=lab)

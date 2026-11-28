@@ -43,6 +43,8 @@ def sweep(plans, queries, wl, gt_ids, rows, k: int = 10, budgets: dict | None = 
           progress: bool = True, gt_dists: np.ndarray | None = None) -> pd.DataFrame:
     """Run every plan at every budget in its grid (or budgets[plan.name])."""
     frames = []
+    if plans:  # untimed pass first, so the first configuration is not timed on cold memory and caches
+        run_plan(plans[0], queries, wl, gt_ids, rows, k, plans[0].budgets[0], gt_dists)
     for plan in plans:
         grid = (budgets or {}).get(plan.name, plan.budgets)
         for b in grid:
