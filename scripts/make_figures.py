@@ -80,7 +80,7 @@ def setup_style():
 
 def save(fig, name):
     FIG.mkdir(parents=True, exist_ok=True)
-    fig.savefig(FIG / f"{name}.pdf")
+    fig.savefig(FIG / f"{name}.pdf", metadata={"CreationDate": None, "ModDate": None})  # byte-stable reruns
     fig.savefig(FIG / f"{name}.png", dpi=200)
     plt.close(fig)
     print(f"  figures/{name}.pdf")

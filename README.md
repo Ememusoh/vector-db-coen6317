@@ -77,11 +77,24 @@ Six plans share one interface, `plan.search(query, label, k, budget)` (`vdb/plan
 
 ## Reproducing experiments
 
+One command reproduces every result, figure and table in the report:
+
+```bash
+uv venv --python 3.12 .venv && uv pip install -r requirements.txt   # once
+scripts/reproduce.sh                  # sift, glove, deep at full size
+scripts/reproduce.sh --quick          # smoke run: 20 val / 10 test queries per selectivity
+scripts/reproduce.sh --dry-run        # list the steps without running them
+```
+
+Per dataset it downloads the data and writes labels and ground truth, builds the indexes, runs the plan sweeps (validation for planner training, test for the oracle and matched-recall lookup) and runs the live planner evaluation. It then regenerates `results/figures/` and `results/tables/`. Steps whose outputs already exist are skipped (`--force` redoes them), logs go to `logs/`, and the software and hardware used are recorded in `results/environment.txt`. Our numbers come from an Apple M4 with 16 GB of memory. A full run needs about 10 GB of disk and takes several hours, mostly in the sweeps. Absolute latencies depend on the machine, but the rankings between methods should hold.
+
+Individual steps can also be run by hand, for example:
+
 ```bash
 python scripts/sweep_plans.py sift independent --per-selectivity 100 --split val
 ```
 
-Writes per-query rows to `results/raw/` and a per-plan/budget/selectivity summary to `results/`.
+This writes per-query rows to `results/raw/` and a per-plan/budget/selectivity summary to `results/`.
 
 ### Planner
 

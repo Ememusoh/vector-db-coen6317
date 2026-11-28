@@ -1,0 +1,11 @@
+date: 2026-11-28T13:53Z
+commit: fcbd52f
+os: Darwin 24.1.0 arm64
+cpu: Apple M4
+memory_gb: 16
+python: 3.12.12
+numpy: 2.5.5
+numba: 0.68.1
+faiss: 1.16.0
+scikit-learn: 1.9.1
+datasets: sift glove deep   val/test queries per selectivity: 200/100
