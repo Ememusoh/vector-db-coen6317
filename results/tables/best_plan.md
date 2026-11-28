@@ -10,6 +10,14 @@ Fastest single plan reaching recall@10 ≥ 0.95, per selectivity (from the budge
 | Deep1M | correlated | 10% | Partitioned IVF in-search | 1024 | 0.358 | 5.847 |
 | Deep1M | correlated | 1% | Pre-filter (exact) | – | 0.131 | 0.131 |
 | Deep1M | correlated | 0.1% | Pre-filter (exact) | – | 0.014 | 0.014 |
+| GIST-500K | independent | 50% | HNSW in-search | 128 | 1.980 | 31.786 |
+| GIST-500K | independent | 10% | Partitioned IVF in-search | 128 | 0.526 | 14.115 |
+| GIST-500K | independent | 1% | Partitioned IVF in-search | 256 | 0.258 | 0.603 |
+| GIST-500K | independent | 0.1% | Pre-filter (exact) | – | 0.037 | 0.037 |
+| GIST-500K | correlated | 50% | HNSW in-search | 128 | 2.653 | 31.019 |
+| GIST-500K | correlated | 10% | Partitioned IVF in-search | 512 | 2.198 | 13.823 |
+| GIST-500K | correlated | 1% | Partitioned IVF in-search | 512 | 0.388 | 0.594 |
+| GIST-500K | correlated | 0.1% | Pre-filter (exact) | – | 0.037 | 0.037 |
 | GloVe-100 | independent | 50% | IVF post-filter | 256 | 0.790 | 7.014 |
 | GloVe-100 | independent | 10% | Partitioned IVF in-search | 1024 | 0.545 | 6.328 |
 | GloVe-100 | independent | 1% | Pre-filter (exact) | – | 0.143 | 0.143 |

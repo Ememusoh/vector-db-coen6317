@@ -10,6 +10,14 @@ Planner vs baselines on held-out test queries (end-to-end latency, planning incl
 | SIFT1M | correlated | Threshold rule | 1.000 | 4.933 | 3.870 | 12.284 | 1.0 |
 | SIFT1M | correlated | Best fixed config | 1.000 | 4.979 | 3.899 | 12.662 | 1.0 |
 | SIFT1M | correlated | Oracle (hindsight) | 0.902 | 0.208 | 0.123 | 0.250 | 23.7 |
+| GIST-500K | independent | Cost-model planner | 0.967 | 0.950 | 0.536 | 3.541 | 1.4 |
+| GIST-500K | independent | Threshold rule | 0.994 | 1.293 | 0.768 | 4.046 | 1.0 |
+| GIST-500K | independent | Best fixed config | 0.997 | 2.087 | 0.965 | 6.768 | 0.6 |
+| GIST-500K | independent | Oracle (hindsight) | 0.962 | 0.311 | 0.260 | 0.789 | 4.2 |
+| GIST-500K | correlated | Cost-model planner | 0.948 | 0.986 | 0.615 | 2.949 | 1.2 |
+| GIST-500K | correlated | Threshold rule | 0.945 | 1.179 | 0.321 | 5.260 | 1.0 |
+| GIST-500K | correlated | Best fixed config | 0.950 | 2.052 | 0.607 | 8.423 | 0.6 |
+| GIST-500K | correlated | Oracle (hindsight) | 0.938 | 0.356 | 0.326 | 0.917 | 3.3 |
 | GloVe-100 | independent | Cost-model planner | 0.959 | 0.284 | 0.264 | 0.784 | 1.1 |
 | GloVe-100 | independent | Threshold rule | 0.970 | 0.308 | 0.257 | 0.812 | 1.0 |
 | GloVe-100 | independent | Best fixed config | 1.000 | 3.220 | 3.280 | 6.737 | 0.1 |
