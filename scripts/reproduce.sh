@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 # Reproduce every result, figure and table in the report with one command.
 #
-#   scripts/reproduce.sh                       # all datasets (sift glove deep), full sizes
+#   scripts/reproduce.sh                       # all datasets (sift gist glove deep yfcc), full sizes
 #   scripts/reproduce.sh --datasets "sift"     # one dataset
 #   scripts/reproduce.sh --quick               # 20 val / 10 test queries per selectivity (smoke run)
 #   scripts/reproduce.sh --force               # redo steps whose outputs already exist
 #   scripts/reproduce.sh --dry-run             # print the steps without running them
 #
-# Steps per dataset: download + labels + ground truth, build indexes, plan sweeps
+# Datasets: sift gist glove deep (synthetic labels, independent + correlated) and
+# yfcc (native tags). Steps per dataset: download + labels + ground truth, build indexes, plan sweeps
 # (validation: planner training; test: oracle and matched-recall lookup), live
 # planner evaluation. Then cross-dataset analysis, figures and tables.
 # Existing outputs are reused unless --force is given. Logs go to logs/.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-DATASETS="sift glove deep"
+DATASETS="sift gist glove deep yfcc"
 VAL=200
 TEST=100
 FORCE=0
@@ -27,7 +28,7 @@ while [ $# -gt 0 ]; do
     --test) TEST="$2"; shift 2 ;;
     --force) FORCE=1; shift ;;
     --dry-run) DRY=1; shift ;;
-    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,15p' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 1 ;;
   esac
 done
@@ -67,11 +68,13 @@ fi
 
 for DS in $DATASETS; do
   D=datasets/$DS
-  step "$DS: download, labels, ground truth" "$D/correlated/gt.npz" "logs/${DS}_prepare.log" \
+  SCHEMES=$(PYTHONPATH=. "$PY" -c "from vdb.data.datasets import schemes; print(' '.join(schemes('$DS')))")
+  LAST=${SCHEMES##* }
+  step "$DS: download, labels, ground truth" "$D/$LAST/gt.npz" "logs/${DS}_prepare.log" \
     "$PY" scripts/prepare_dataset.py "$DS"
   step "$DS: build IVF and HNSW" "$(ls indexes/$DS/hnsw_*.npz 2>/dev/null | head -1)" "logs/${DS}_build.log" \
     "$PY" scripts/build_indexes.py "$DS"
-  for S in independent correlated; do
+  for S in $SCHEMES; do
     step "$DS/$S: validation sweep ($VAL per selectivity)" "results/raw/${DS}_${S}_val.parquet" \
       "logs/${DS}_${S}_val_sweep.log" "$PY" scripts/sweep_plans.py "$DS" "$S" --split val --per-selectivity "$VAL"
     step "$DS/$S: test sweep ($TEST per selectivity)" "results/raw/${DS}_${S}_test.parquet" \

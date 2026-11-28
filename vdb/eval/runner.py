@@ -11,6 +11,7 @@ from .metrics import recall_at_k
 
 
 def warm_up(plan: Plan, q, label, k, budget):
+    plan.ctx.prepare(label)
     plan.search(q, label, k, budget)  # trigger Numba compilation outside timing
 
 
@@ -22,6 +23,7 @@ def run_plan(plan: Plan, queries: np.ndarray, wl, gt_ids: np.ndarray, rows: np.n
     for r in rows:
         q = queries[wl.query_ids[r]]
         label = int(wl.labels[r])
+        plan.ctx.prepare(label)  # multi-label predicate bitmap; no-op otherwise (untimed for every plan)
         t0 = time.perf_counter()
         res = plan.search(q, label, k, budget)
         dt = time.perf_counter() - t0
@@ -61,12 +63,15 @@ def summarize(df: pd.DataFrame) -> pd.DataFrame:
 
 def sample_rows(wl, split: str, per_selectivity: int, seed: int = 0) -> np.ndarray:
     """Workload rows used by sweeps and planner evaluation: up to `per_selectivity`
-    rows per label from the given split ('val', 'test' or 'all'). Same arguments
-    give the same rows, so sweeps, oracle and live planner runs line up."""
+    rows per selectivity level from the given split ('val', 'test' or 'all'). Same
+    arguments give the same rows, so sweeps, oracle and live planner runs line up.
+    (Synthetic workloads have one label per level and are grouped by label, which
+    is the same grouping; native-label workloads are grouped by selectivity band.)"""
     rng = np.random.default_rng(seed)
     mask = np.ones(len(wl), bool) if split == "all" else wl.split == (0 if split == "val" else 1)
+    key = wl.labels if np.unique(wl.labels).size <= np.unique(wl.selectivity).size else wl.selectivity
     rows = []
-    for lab in np.unique(wl.labels):
-        cand = np.flatnonzero(mask & (wl.labels == lab))
+    for lab in np.unique(key):
+        cand = np.flatnonzero(mask & (key == lab))
         rows.append(np.sort(rng.choice(cand, min(per_selectivity, cand.size), replace=False)))
     return np.concatenate(rows)

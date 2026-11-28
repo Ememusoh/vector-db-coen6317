@@ -1,5 +1,5 @@
 from .base import Plan, PlanResult
-from .context import AttributeIndex, FilterContext
+from .context import AttributeIndex, FilterContext, MultiLabelContext
 from .insearch import HNSWInSearch, IVFInSearch, PartitionedIVFInSearch
 from .postfilter import HNSWPostFilter, IVFPostFilter
 from .prefilter import PreFilter
@@ -23,5 +23,5 @@ def make_plans(ctx, names=None):
     return plans
 
 
-__all__ = ["Plan", "PlanResult", "AttributeIndex", "FilterContext", "PreFilter", "IVFPostFilter",
+__all__ = ["Plan", "PlanResult", "AttributeIndex", "FilterContext", "MultiLabelContext", "PreFilter", "IVFPostFilter",
            "HNSWPostFilter", "IVFInSearch", "PartitionedIVFInSearch", "HNSWInSearch", "ALL_PLANS", "make_plans"]

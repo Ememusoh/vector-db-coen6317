@@ -31,6 +31,8 @@ from matplotlib.ticker import FuncFormatter  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / "results"
+sys.path.insert(0, str(ROOT))
+from vdb.data.datasets import schemes as schemes_of  # noqa: E402  (synthetic: independent/correlated; YFCC: native)
 FIG = RES / "figures"
 TAB = RES / "tables"
 
@@ -57,7 +59,9 @@ METHODS = {
     "fixed":     ("Best fixed config",  "#1baf7a", "D", True),
     "oracle":    ("Oracle (hindsight)", INK2,      "o", False),
 }
-SCHEMES = ("independent", "correlated")
+SCHEME_SHORT = {"independent": "indep.", "correlated": "corr.", "native": "native"}
+
+
 DATASET_NAMES = {"sift": "SIFT1M", "glove": "GloVe-100", "deep": "Deep1M", "gist": "GIST-500K", "yfcc": "YFCC"}
 TARGET = 0.95
 
@@ -159,7 +163,7 @@ def load_oracle(ds):
 # ---------------- figure 1: recall vs latency ----------------
 
 def fig_recall_latency(ds):
-    sums = {s: load_sweep_summary(ds, s) for s in SCHEMES}
+    sums = {s: load_sweep_summary(ds, s) for s in schemes_of(ds)}
     sums = {s: v for s, v in sums.items() if v[0] is not None}
     if not sums:
         print(f"  skip recall_latency_{ds}: no sweep summaries")
@@ -214,7 +218,7 @@ def planner_rows(datasets):
         if p is None:
             continue
         o = load_oracle(ds)
-        for scheme in SCHEMES:
+        for scheme in schemes_of(ds):
             for m in ("planner", "threshold", "fixed"):
                 d = p[(p.scheme == scheme) & (p.plan == m)]
                 if len(d):
@@ -287,7 +291,7 @@ def fig_planner_choices(ds):
     p = p[p.plan == "planner"].copy()
     p["chosen_plan"] = p.chosen.str.rsplit("@", n=1).str[0]
     sels = sorted(p.selectivity.unique(), reverse=True)
-    rows = [(s, sel) for s in SCHEMES for sel in sels if ((p.scheme == s) & (p.selectivity == sel)).any()]
+    rows = [(s, sel) for s in schemes_of(ds) for sel in sels if ((p.scheme == s) & (p.selectivity == sel)).any()]
     fig, ax = plt.subplots(figsize=(COL_W, 0.2 * len(rows) + 0.75))
     for i, (s, sel) in enumerate(rows):
         y = len(rows) - 1 - i
@@ -302,7 +306,7 @@ def fig_planner_choices(ds):
                     ax.text(left + w / 2, y, f"{w * 100:.0f}%", ha="center", va="center", fontsize=5.5,
                             color=ink_on(color))
                 left += w
-    ax.set_yticks(range(len(rows))[::-1], [f"{'indep.' if s == 'independent' else 'corr.'} {sel_label(sel)}" for s, sel in rows])
+    ax.set_yticks(range(len(rows))[::-1], [f"{SCHEME_SHORT[s]} {sel_label(sel)}" for s, sel in rows])
     ax.set_xlim(0, 1)
     ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v * 100:.0f}%"))
     ax.set_xlabel("share of test queries")
@@ -337,7 +341,7 @@ def table_planner(df):
 def table_best_plan(datasets):
     rows = []
     for ds in datasets:
-        for scheme in SCHEMES:
+        for scheme in schemes_of(ds):
             df, split = load_sweep_summary(ds, scheme)
             if df is None:
                 continue
@@ -373,7 +377,7 @@ def table_indexes(datasets):
         vec_mib = n * dim * 4 / 2**20
         ivf_mib = (vec_mib * 2**20 + n * 8 + ivf.get("nlist", 0) * (dim * 4 + 8)) / 2**20 if ivf else np.nan
         n_labels = _n_labels(ds)
-        part_mib = ivf_mib + ivf.get("nlist", 0) * (n_labels + 1) * 8 / 2**20 if ivf else np.nan
+        part_mib = ivf_mib + ivf.get("nlist", 0) * (n_labels + 1) * 8 / 2**20 if ivf and n_labels else np.nan
         graph_mib = np.nan
         if hnsw_f:
             z = np.load(hnsw_f.with_suffix(".npz"))
@@ -393,10 +397,10 @@ def table_indexes(datasets):
 
 
 def _n_labels(ds):
-    for s in SCHEMES:
+    for s in schemes_of(ds):
         f = ROOT / "datasets" / ds / s / "info.json"
         if f.exists():
-            return json.loads(f.read_text())["n_labels"]
+            return json.loads(f.read_text()).get("n_labels", 0)  # native multi-label: no partitioned IVF
     return 0
 
 

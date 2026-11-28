@@ -3,6 +3,7 @@
 Usage:
     python scripts/prepare_dataset.py sift
     python scripts/prepare_dataset.py glove --n 1000000 --schemes independent correlated
+    python scripts/prepare_dataset.py yfcc     # native tags; see vdb/data/yfcc.py
 
 Output (datasets/<name>/):
     base.npy, queries.npy, meta.json
@@ -27,7 +28,7 @@ from vdb.data import attributes, datasets, groundtruth, workload  # noqa: E402
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("name", choices=sorted(datasets.REGISTRY))
+    ap.add_argument("name", choices=sorted(datasets.REGISTRY) + ["yfcc"])
     ap.add_argument("--n", type=int, default=None, help="base subset size")
     ap.add_argument("--schemes", nargs="+", default=list(attributes.SCHEMES))
     ap.add_argument("--k", type=int, default=100)
@@ -36,6 +37,13 @@ def main():
     args = ap.parse_args()
 
     t = time.time()
+    if args.name == "yfcc":
+        from vdb.data import yfcc
+        out = datasets.DATA_ROOT / "yfcc"
+        out.mkdir(parents=True, exist_ok=True)
+        info = yfcc.prepare(out, n=args.n or 1_000_000, k=args.k, seed=args.seed)
+        print(f"[yfcc] {json.dumps(info)} ({time.time() - t:.0f}s)")
+        return
     out = datasets.prepare(args.name, args.n)
     base, queries, meta = datasets.load(args.name)
     print(f"[{args.name}] base {base.shape}, queries {queries.shape} ({time.time() - t:.0f}s)")
