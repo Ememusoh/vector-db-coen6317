@@ -58,7 +58,7 @@ METHODS = {
     "oracle":    ("Oracle (hindsight)", INK2,      "o", False),
 }
 SCHEMES = ("independent", "correlated")
-DATASET_NAMES = {"sift": "SIFT1M", "glove": "GloVe-100", "deep": "Deep1M", "gist": "GIST", "yfcc": "YFCC"}
+DATASET_NAMES = {"sift": "SIFT1M", "glove": "GloVe-100", "deep": "Deep1M", "gist": "GIST-500K", "yfcc": "YFCC"}
 TARGET = 0.95
 
 COL_W, TEXT_W = 3.33, 7.0  # ACM single column / full text width (inches)
@@ -404,7 +404,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--datasets", nargs="+", default=None)
     args = ap.parse_args()
-    datasets = args.datasets or [d for d in DATASET_NAMES if (ROOT / "datasets" / d / "meta.json").exists()]
+    datasets = args.datasets or [d for d in DATASET_NAMES if (RES / "raw" / f"{d}_planner_test.parquet").exists()]
     setup_style()
     print(f"datasets: {', '.join(datasets)}")
     for ds in datasets:

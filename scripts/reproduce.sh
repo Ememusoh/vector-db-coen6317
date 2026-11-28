@@ -81,9 +81,15 @@ for DS in $DATASETS; do
     "$PY" scripts/evaluate_planner.py "$DS" --per-selectivity "$TEST"
 done
 
-# Analysis always reruns: it is cheap and depends on everything above.
+# Analysis always reruns (cheap) over every dataset that has finished results,
+# so running one new dataset does not drop the others from the figures.
 FORCE=1
-step "matched-recall comparison" "" logs/matched_recall.log "$PY" scripts/matched_recall.py --datasets $DATASETS
-step "figures and tables" "" logs/figures.log "$PY" scripts/make_figures.py --datasets $DATASETS
+ALL=""
+for DS in sift gist glove deep yfcc $DATASETS; do
+  case " $ALL " in *" $DS "*) continue ;; esac
+  if [ -e "results/raw/${DS}_planner_test.parquet" ] || [ "$DRY" = 1 ]; then ALL="$ALL $DS"; fi
+done
+step "matched-recall comparison ($ALL )" "" logs/matched_recall.log "$PY" scripts/matched_recall.py --datasets $ALL
+step "figures and tables" "" logs/figures.log "$PY" scripts/make_figures.py --datasets $ALL
 
 echo "[$(date +%T)] done in $(( ($(date +%s) - START) / 60 )) min. Figures: results/figures/  Tables: results/tables/"
